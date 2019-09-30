@@ -21,7 +21,6 @@ pacman::p_load(dplyr)
 ```
 以上這些程式碼請大家不要去改動<br>
 
-- - -
 
 **股票動態**
 
@@ -49,13 +48,24 @@ pacman::p_load(dplyr)
 
 __§ 1.1__ Our five datasets all have the same number of observations. How many observations are there in each data set?
 ```{r}
+IBM = read.csv('data/IBMstock.csv')
+GE = read.csv('data/GEstock.csv')
+PG = read.csv('data/ProcterGambleStock.csv')
+CO = read.csv('data/CocaColastock.csv')
+BOE = read.csv('data/Boeingstock.csv')
+
 L = list(
 IBM = read.csv('data/IBMstock.csv'),
 GE = read.csv('data/GEstock.csv'),
 PG = read.csv('data/ProcterGambleStock.csv'),
 CO = read.csv('data/CocaColastock.csv'),
 BOE = read.csv('data/Boeingstock.csv'))
+#不曉得下面幾行在幹嘛⬇️⬇️
+for(i in 1:length(L)) {
+  L[[i]]$Date = as.character(L[[i]]$Date) %>% as.Date('%m/%d/%y')
+}
 
+lapply(L, function(df) range(df$Date))
 ```
 
 
@@ -122,13 +132,30 @@ abline(v=as.Date(c("2000-03-01","1983-01-01","1984-01-01")),col='gray',lty=3)
 
 __§ 2.3__ (a) Around 1983, the stock for one of these companies (Coca-Cola or Procter and Gamble) was going up, while the other was going down. Which one was going up? 
 ```{r}
-#
+plot(IBM$Date, IBM$StockPrice,type='l',col='orange'
+     ,xlim=as.Date(c('1983-01-01','1983-12-31')), ylim=c(0,150))
+lines(CO$Date, CO$StockPrice, type='l', col='green')
+lines(PG$Date, PG$StockPrice, type='l', col='blue')
+abline(v=as.Date(c("1983-01-01","1983-04-01","1983-07-01","1983-10-01")),col='gray',lty=3)
+#Coca-Cola was going up
 #
 ```
 
 (b) In the time period shown in the plot, which stock generally has lower values?
 ```{r}
-#
+mean(CO$StockPrice)
+mean(GE$StockPrice)
+mean(BOE$StockPrice)
+mean(PG$StockPrice)
+
+M =c(
+mean(CO$StockPrice),
+mean(GE$StockPrice),
+mean(BOE$StockPrice),
+mean(PG$StockPrice))
+
+min(M)
+#BOE's has lower value
 #
 ```
 
@@ -139,24 +166,49 @@ __§ 2.3__ (a) Around 1983, the stock for one of these companies (Coca-Cola or P
 
 __§ 3.1__ Which stock fell the most right after the technology bubble burst in March 2000?
 ```{r}
-#
+plot(IBM$Date, IBM$StockPrice, type='l', col='orange', 
+     xlim=as.Date(c('1999-03-01','2001-03-01')), ylim=c(0,250))
+lines(GE$Date, GE$StockPrice, type='l', col='cyan')
+lines(BOE$Date, BOE$StockPrice, type='l', col='pink')
+lines(CO$Date, CO$StockPrice, type='l', col='green')
+lines(PG$Date, PG$StockPrice, type='l', col='blue')
+abline(v=as.Date(c("2000-03-01")),col='gray',lty=3)
+#GE's Stock fell the most
 #
 ```
 
 __§ 3.2__ Which stock reaches the highest value in the time period 1995-2005?
 ```{r}
+plot(IBM$Date, IBM$StockPrice, type='l', col='orange', 
+     xlim=as.Date(c('1995-01-01','2005-12-01')), ylim=c(0,250))
+lines(GE$Date, GE$StockPrice, type='l', col='cyan')
+lines(BOE$Date, BOE$StockPrice, type='l', col='pink')
+lines(CO$Date, CO$StockPrice, type='l', col='green')
+lines(PG$Date, PG$StockPrice, type='l', col='blue')
+abline(v=as.Date(c("1995-01-01","2000-01-01","2005-01-01")),col='gray',lty=3)
 #
 #
 ```
 
 __§ 3.3__ In October of 1997, there was a global stock market crash that was caused by an economic crisis in Asia. Comparing September 1997 to November 1997, which companies saw a decreasing trend in their stock price? (Select all that apply.)
 ```{r}
+IBM$StockPrice[ IBM$Date %in% as.Date(c("1997-09-01", "1997-11-01")) ]
+sapply(L, function(df){
+  df$StockPrice[ 
+    df$Date %in% as.Date(c("1997-09-01", "1997-11-01")) 
+    ]})
 #
 #
 ```
 
 __§ 3.4__ In the last two years of this time period (2004 and 2005) which stock seems to be performing the best, in terms of increasing stock price?
 ```{r}
+plot(IBM$Date, IBM$StockPrice, type='l', col='orange', 
+     xlim=as.Date(c('2004-01-01','2005-12-01')), ylim=c(0,120))
+lines(GE$Date, GE$StockPrice, type='l', col='cyan')
+lines(BOE$Date, BOE$StockPrice, type='l', col='pink')
+lines(CO$Date, CO$StockPrice, type='l', col='green')
+lines(PG$Date, PG$StockPrice, type='l', col='blue')
 #
 #
 ```
@@ -182,8 +234,7 @@ __§ 4.3__ For the months of December and January, every company's average stock
 ```{r}
 sapply(L, function(df){ 
   tapply(df$StockPrice, format(df$Date,'%m'), mean)
-  })
+})
 ```
 
 <br><br><br>
-
