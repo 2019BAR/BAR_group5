@@ -44,30 +44,38 @@ pacman::p_load(dplyr)
 
 __§ 1.1__ How many interviewees are in the dataset?
 ```{r}
+A = read.csv("data/CPSData.csv")
+MetroAreaMap = read.csv("data/MetroAreaCodes.csv")
+CountryMap = read.csv("data/CountryCodes.csv")
+nrow(A)
 #
 #
 ```
 
 __§ 1.2__ Among the interviewees with a value reported for the Industry variable, what is the most common industry of employment? Please enter the name exactly how you see it.
 ```{r}
-#
+sort(table(A$Industry))
+#Educational and health services 
 #
 ```
 
 __§ 1.3__ Which state has the fewest interviewees?
 ```{r}
-#
+sort(table(A$State))
+#New Mexico
 #
 ```
 
 Which state has the largest number of interviewees?
 ```{r}
-#
+table(A$State) %>% sort %>% tail(6)
+#California 
 #
 ```
 
 __§ 1.4__ What proportion of interviewees are citizens of the United States?
 ```{r}
+table(A$Citizenship) %>% prop.table
 #
 #
 ```
@@ -82,6 +90,7 @@ __§ 1.5__ For which races are there at least 250 interviewees in the CPS datase
 + White
 
 ```{r}
+tapply(A$Hispanic, A$Race, sum) %>% sort
 #
 #
 ```
@@ -107,7 +116,8 @@ __§ 2.1__ Which variables have at least one interviewee with a missing (NA) val
 + Industry
 
 ```{r}
-#
+summary(A)
+#Married,  MetroAreaCode, Education, EmploymentStatus, Industry 
 #
 ```
 
@@ -120,36 +130,48 @@ __§ 2.2__  Which is the most accurate:
 + The Married variable being missing is not related to the Region, Sex, Age, or Citizenship value for the interviewee.
 
 ```{r}
+tapply(is.na(A$Married), A$Region, mean)
+tapply(is.na(A$Married), A$Sex, mean)
+tapply(is.na(A$Married), A$Age, mean)
+tapply(is.na(A$Married), A$Citizenship, mean)
+
 #
 #
 ```
 
 __§ 2.3__ How many states had all interviewees living in a non-metropolitan area (aka they have a missing MetroAreaCode value)? For this question, treat the District of Columbia as a state (even though it is not technically a state).
 ```{r}
-#
+B = tapply(is.na(A$MetroAreaCode), A$State, mean) %>% sort
+nrow(B)
+#51
 #
 ```
 
 How many states had all interviewees living in a metropolitan area? Again, treat the District of Columbia as a state.
 ```{r}
-#
+C = tapply(A$MetroAreaCode, A$State, mean) %>% sort
+nrow(C)
+#3
 #
 ```
 
 __§ 2.4__ Which region of the United States has the largest proportion of interviewees living in a non-metropolitan area?
 ```{r}
-#
+tapply(is.na(A$MetroAreaCode), A$Region, mean) %>% sort
+#Midwest
 #
 ```
 
 __§ 2.5__ Which state has a proportion of interviewees living in a non-metropolitan area closest to 30%?
 ```{r}
-#
+tapply(is.na(A$MetroAreaCode), A$State, mean) %>% sort
+#Wisconsin
 #
 ```
 
 Which state has the largest proportion of non-metropolitan interviewees, ignoring states where all interviewees were non-metropolitan?
 ```{r}
+tapply(is.na(A$MetroAreaCode), A$State, mean) %>% sort
 #
 #
 ```
@@ -160,47 +182,56 @@ Which state has the largest proportion of non-metropolitan interviewees, ignorin
 
 __§ 3.1__ How many observations (codes for metropolitan areas) are there in MetroAreaMap?
 ```{r}
+nrow(MetroAreaMap)
 #
 #
 ```
 
 How many observations (codes for countries) are there in CountryMap?
 ```{r}
+nrow(CountryMap)
 #
 #
 ```
 
 __§ 3.2__ What is the name of the variable that was added to the data frame by the merge() operation?
 ```{r}
+
 #
 #
 ```
 
 ```{r}
-#
+A = merge(A, MetroAreaMap, by.x="MetroAreaCode", by.y="Code", all.x=TRUE)
 #
 ```
 
 How many interviewees have a missing value for the new metropolitan area variable?
 ```{r}
+
+sum(is.na(A$MetroArea))
+
 #
 #
 ```
 
 __§ 3.3__ Which metropolitan areas has the largest number of interviewees?
 ```{r}
+table(A$MetroArea) %>% sort %>% tail
 #
 #
 ```
 
 __§ 3.4__ Which metropolitan area has the highest proportion of interviewees of Hispanic ethnicity?
 ```{r}
+tapply(A$Hispanic, A$MetroArea, mean) %>% sort %>% tail
 #
 #
 ```
 
 __§ 3.5__ Determine the number of metropolitan areas in the United States from which at least 20% of interviewees are Asian.
 ```{r}
+tapply(A$Race == "Asian", A$MetroArea, mean) %>% sort %>% tail
 #
 #
 ```
@@ -208,6 +239,8 @@ __§ 3.5__ Determine the number of metropolitan areas in the United States from 
 
 __§ 3.6__  Passing na.rm=TRUE to the tapply function, determine which metropolitan area has the smallest proportion of interviewees who have received no high school diploma.
 ```{r}
+tapply(A$Education=='No high school diploma', A$MetroArea, mean, na.rm=T) %>% 
+  sort %>% head
 #
 #
 ```
@@ -220,42 +253,51 @@ __§ 3.6__  Passing na.rm=TRUE to the tapply function, determine which metropoli
 
 __§ 4.1__ What is the name of the variable added to the CPS data frame by this merge operation?
 ```{r}
+A = merge(A, CountryMap, by.x="CountryOfBirthCode", by.y="Code", all.x=TRUE)
+
 #
 #
 ```
 
 How many interviewees have a missing value for the new `Country` variable?
 ```{r}
+sum(is.na(A$Country))
 #
 #
 ```
 
 __§ 4.2__ Among all interviewees born outside of North America, which country was the most common place of birth?
 ```{r}
+table(A$Country) %>% sort %>% tail(10)
 #
 #
 ```
 
 __§ 4.3__ What proportion of the interviewees from the "New York-Northern New Jersey-Long Island, NY-NJ-PA" metropolitan area have a country of birth that is not the United States? 
 ```{r}
+table(A$Country[A$MetroArea=="New York-Northern New Jersey-Long Island, NY-NJ-PA"] == 
+  "United States") %>% prop.table
 #
 #
 ```
 
 __§ 4.4__ Which metropolitan area has the largest number (note -- not proportion) of interviewees with a country of birth in India? 
 ```{r}
+tapply(A$Country=="India", A$MetroArea, sum) %>% sort %>% tail
 #
 #
 ```
 
 In Brazil?
 ```{r}
+tapply(A$Country=="Brazil", A$MetroArea, sum) %>% sort %>% tail
 #
 #
 ```
 
 In Somalia?
 ```{r}
+tapply(A$Country=="Somalia", A$MetroArea, sum) %>% sort %>% tail
 #
 #
 ```
