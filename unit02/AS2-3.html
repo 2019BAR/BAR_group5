@@ -10,7 +10,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="第 0 組" />
+<meta name="author" content="第 5 組" />
 
 
 <title>AS2-3: 美國的人口統計和就業資料</title>
@@ -229,7 +229,7 @@ a.sourceLine { text-indent: -1em; padding-left: 1em; }
 pre.numberSource a.sourceLine
   { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
     border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
@@ -346,6 +346,7 @@ code {
 }
 img {
   max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -439,20 +440,20 @@ summary {
 
 
 <h1 class="title toc-ignore">AS2-3: 美國的人口統計和就業資料</h1>
-<h4 class="author">第 0 組</h4>
-<h4 class="date">2019-09-30 21:18:45</h4>
+<h4 class="author">第 5 組</h4>
+<h4 class="date">2019-10-01 00:35:15</h4>
 
 </div>
 
 
 <hr>
 <p>基本的程式筆記設定，安裝、載入一些基本的套件</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>(<span class="dt">all=</span>T))</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">comment =</span> <span class="ot">NA</span>)</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">knitr<span class="op">::</span>opts_knit<span class="op">$</span><span class="kw">set</span>(<span class="dt">global.par =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">par</span>(<span class="dt">cex=</span><span class="fl">0.8</span>); <span class="kw">options</span>(<span class="dt">scipen=</span><span class="dv">20</span>, <span class="dt">digits=</span><span class="dv">4</span>, <span class="dt">width=</span><span class="dv">90</span>)</a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="cf">if</span>(<span class="op">!</span><span class="kw">require</span>(pacman)) <span class="kw">install.packages</span>(<span class="st">&quot;pacman&quot;</span>)</a>
-<a class="sourceLine" id="cb1-6" data-line-number="6">pacman<span class="op">::</span><span class="kw">p_load</span>(dplyr)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>(<span class="dt">all=</span>T))</a>
+<a class="sourceLine" id="cb1-2" title="2">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">comment =</span> <span class="ot">NA</span>)</a>
+<a class="sourceLine" id="cb1-3" title="3">knitr<span class="op">::</span>opts_knit<span class="op">$</span><span class="kw">set</span>(<span class="dt">global.par =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="kw">par</span>(<span class="dt">cex=</span><span class="fl">0.8</span>); <span class="kw">options</span>(<span class="dt">scipen=</span><span class="dv">20</span>, <span class="dt">digits=</span><span class="dv">4</span>, <span class="dt">width=</span><span class="dv">90</span>)</a>
+<a class="sourceLine" id="cb1-5" title="5"><span class="cf">if</span>(<span class="op">!</span><span class="kw">require</span>(pacman)) <span class="kw">install.packages</span>(<span class="st">&quot;pacman&quot;</span>)</a>
+<a class="sourceLine" id="cb1-6" title="6">pacman<span class="op">::</span><span class="kw">p_load</span>(dplyr)</a></code></pre></div>
 以上這些程式碼請大家不要去改動<br>
 <hr>
 <p>就業統計數據是政策制定者用來衡量經濟整體實力的最重要指標之一。在美國，政府使用現有人口調查（CPS）衡量失業率，該調查每月收集來自各種美國人的人口統計和就業信息。在本練習中，我們將使用講座中審查的主題以及一些使用2013年9月版的，具有全國代表性的數據集。數據集中的觀察結果代表2013年9月CPS中實際完成調查的人員，完整數據集有385個欄位，但在本練習中，我們將使用數據集CPSData.csv版本，它具有以下欄位：</p>
@@ -477,15 +478,13 @@ summary {
 <div id="section-1-loading-and-summarizing-the-dataset" class="section level3">
 <h3>Section-1 Loading and Summarizing the Dataset</h3>
 <p><strong>§ 1.1</strong> How many interviewees are in the dataset?</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">A =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/CPSData.csv&quot;</span>)</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">MetroAreaMap =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/MetroAreaCodes.csv&quot;</span>)</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">CountryMap =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/CountryCodes.csv&quot;</span>)</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="kw">nrow</span>(A)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">A =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/CPSData.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb2-2" title="2">MetroAreaMap =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/MetroAreaCodes.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb2-3" title="3">CountryMap =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/CountryCodes.csv&quot;</span>)</a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="kw">nrow</span>(A)</a></code></pre></div>
 <pre><code>[1] 131302</code></pre>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 1.2</strong> Among the interviewees with a value reported for the Industry variable, what is the most common industry of employment? Please enter the name exactly how you see it.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">sort</span>(<span class="kw">table</span>(A<span class="op">$</span>Industry))</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">sort</span>(<span class="kw">table</span>(A<span class="op">$</span>Industry))</a></code></pre></div>
 <pre><code>
                                Armed forces                                      Mining 
                                          29                                         550 
@@ -501,10 +500,9 @@ Agriculture, forestry, fishing, and hunting                                 Info
                                        6791                                        7519 
                                       Trade             Educational and health services 
                                        8933                                       15017 </code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="co">#Educational and health services </span></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1"><span class="co">#Educational and health services </span></a></code></pre></div>
 <p><strong>§ 1.3</strong> Which state has the fewest interviewees?</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">sort</span>(<span class="kw">table</span>(A<span class="op">$</span>State))</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">sort</span>(<span class="kw">table</span>(A<span class="op">$</span>State))</a></code></pre></div>
 <pre><code>
           New Mexico              Montana          Mississippi              Alabama 
                 1102                 1214                 1230                 1376 
@@ -532,22 +530,18 @@ Agriculture, forestry, fishing, and hunting                                 Info
                 3678                 3912                 3930                 5149 
             New York                Texas           California 
                 5595                 7077                11570 </code></pre>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="co">#New Mexico</span></a>
-<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1"><span class="co">#New Mexico</span></a></code></pre></div>
 <p>Which state has the largest number of interviewees?</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw">table</span>(A<span class="op">$</span>State) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">tail</span>(<span class="dv">6</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">table</span>(A<span class="op">$</span>State) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">tail</span>(<span class="dv">6</span>)</a></code></pre></div>
 <pre><code>
     Illinois Pennsylvania      Florida     New York        Texas   California 
         3912         3930         5149         5595         7077        11570 </code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="co">#California </span></a>
-<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1"><span class="co">#California </span></a></code></pre></div>
 <p><strong>§ 1.4</strong> What proportion of interviewees are citizens of the United States?</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw">table</span>(A<span class="op">$</span>Citizenship) <span class="op">%&gt;%</span><span class="st"> </span>prop.table</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">table</span>(A<span class="op">$</span>Citizenship) <span class="op">%&gt;%</span><span class="st"> </span>prop.table</a></code></pre></div>
 <pre><code>
      Citizen, Native Citizen, Naturalized          Non-Citizen 
              0.88833              0.05387              0.05781 </code></pre>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 1.5</strong> For which races are there at least 250 interviewees in the CPS dataset of Hispanic ethnicity? (Select all that apply.)</p>
 <ul>
 <li>American Indian</li>
@@ -557,13 +551,11 @@ Agriculture, forestry, fishing, and hunting                                 Info
 <li>Pacific Islander</li>
 <li>White</li>
 </ul>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="kw">tapply</span>(A<span class="op">$</span>Hispanic, A<span class="op">$</span>Race, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">tapply</span>(A<span class="op">$</span>Hispanic, A<span class="op">$</span>Race, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
 <pre><code>Pacific Islander            Asian  American Indian      Multiracial            Black 
               77              113              304              448              621 
            White 
            16731 </code></pre>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <br><br>
 <hr>
 </div>
@@ -586,7 +578,7 @@ Agriculture, forestry, fishing, and hunting                                 Info
 <li>EmploymentStatus</li>
 <li>Industry</li>
 </ul>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="kw">summary</span>(A)</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">summary</span>(A)</a></code></pre></div>
 <pre><code> PeopleInHousehold       Region               State       MetroAreaCode        Age      
  Min.   : 1.00     Midwest  :30684   California  :11570   Min.   :10420   Min.   : 0.0  
  1st Qu.: 2.00     Northeast:25939   Texas       : 7077   1st Qu.:21780   1st Qu.:19.0  
@@ -594,15 +586,15 @@ Agriculture, forestry, fishing, and hunting                                 Info
  Mean   : 3.28     West     :33177   Florida     : 5149   Mean   :35075   Mean   :38.8  
  3rd Qu.: 4.00                       Pennsylvania: 3930   3rd Qu.:41860   3rd Qu.:57.0  
  Max.   :15.00                       Illinois    : 3912   Max.   :79600   Max.   :85.0  
-                                     (Other)     :94069   NA's   :34238                 
+                                     (Other)     :94069   NA&#39;s   :34238                 
           Married          Sex                          Education    
  Divorced     :11151   Female:67481   High school            :30906  
- Married      :55509   Male  :63821   Bachelor's degree      :19443  
+ Married      :55509   Male  :63821   Bachelor&#39;s degree      :19443  
  Never Married:30772                  Some college, no degree:18863  
  Separated    : 2027                  No high school diploma :16095  
  Widowed      : 6505                  Associate degree       : 9913  
- NA's         :25338                  (Other)                :10744  
-                                      NA's                   :25338  
+ NA&#39;s         :25338                  (Other)                :10744  
+                                      NA&#39;s                   :25338  
                Race           Hispanic     CountryOfBirthCode
  American Indian :  1433   Min.   :0.000   Min.   : 57.0     
  Asian           :  6520   1st Qu.:0.000   1st Qu.: 57.0     
@@ -617,7 +609,7 @@ Agriculture, forestry, fishing, and hunting                                 Info
  Non-Citizen         :  7590   Not in Labor Force:15246  
                                Retired           :18619  
                                Unemployed        : 4203  
-                               NA's              :25789  
+                               NA&#39;s              :25789  
                                                          
                                Industry    
  Educational and health services   :15017  
@@ -626,9 +618,8 @@ Agriculture, forestry, fishing, and hunting                                 Info
  Manufacturing                     : 6791  
  Leisure and hospitality           : 6364  
  (Other)                           :21618  
- NA's                              :65060  </code></pre>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="co">#Married,  MetroAreaCode, Education, EmploymentStatus, Industry </span></a>
-<a class="sourceLine" id="cb22-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+ NA&#39;s                              :65060  </code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1"><span class="co">#Married,  MetroAreaCode, Education, EmploymentStatus, Industry </span></a></code></pre></div>
 <p><strong>§ 2.2</strong> Which is the most accurate:</p>
 <ul>
 <li>The Married variable being missing is related to the Region value for the interviewee.</li>
@@ -637,44 +628,39 @@ Agriculture, forestry, fishing, and hunting                                 Info
 <li>The Married variable being missing is related to the Citizenship value for the interviewee.</li>
 <li>The Married variable being missing is not related to the Region, Sex, Age, or Citizenship value for the interviewee.</li>
 </ul>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Region, mean)</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" title="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Region, mean)</a></code></pre></div>
 <pre><code>  Midwest Northeast     South      West 
    0.1980    0.1738    0.1920    0.2046 </code></pre>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Sex, mean)</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" title="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Sex, mean)</a></code></pre></div>
 <pre><code>Female   Male 
 0.1810 0.2056 </code></pre>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Age, mean)</a></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" title="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Age, mean)</a></code></pre></div>
 <pre><code> 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 
  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 
  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 85 
  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 </code></pre>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Citizenship, mean)</a></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" title="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Married), A<span class="op">$</span>Citizenship, mean)</a></code></pre></div>
 <pre><code>     Citizen, Native Citizen, Naturalized          Non-Citizen 
              0.21162              0.02305              0.06482 </code></pre>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb31-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 2.3</strong> How many states had all interviewees living in a non-metropolitan area (aka they have a missing MetroAreaCode value)? For this question, treat the District of Columbia as a state (even though it is not technically a state).</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1">B =<span class="st"> </span><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a>
-<a class="sourceLine" id="cb32-2" data-line-number="2"><span class="kw">nrow</span>(B)</a></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" title="1">B =<span class="st"> </span><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a>
+<a class="sourceLine" id="cb28-2" title="2"><span class="kw">nrow</span>(B)</a></code></pre></div>
 <pre><code>[1] 51</code></pre>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1"><span class="co">#51</span></a>
-<a class="sourceLine" id="cb34-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" title="1"><span class="co">#51</span></a></code></pre></div>
 <p>How many states had all interviewees living in a metropolitan area? Again, treat the District of Columbia as a state.</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1">C =<span class="st"> </span><span class="kw">tapply</span>(A<span class="op">$</span>MetroAreaCode, A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a>
-<a class="sourceLine" id="cb35-2" data-line-number="2"><span class="kw">nrow</span>(C)</a></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" title="1">C =<span class="st"> </span><span class="kw">tapply</span>(A<span class="op">$</span>MetroAreaCode, A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a>
+<a class="sourceLine" id="cb31-2" title="2"><span class="kw">nrow</span>(C)</a></code></pre></div>
 <pre><code>[1] 3</code></pre>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" data-line-number="1"><span class="co">#3</span></a>
-<a class="sourceLine" id="cb37-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" title="1"><span class="co">#3</span></a></code></pre></div>
 <p><strong>§ 2.4</strong> Which region of the United States has the largest proportion of interviewees living in a non-metropolitan area?</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" data-line-number="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>Region, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" title="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>Region, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
 <pre><code>Northeast     South      West   Midwest 
    0.2162    0.2378    0.2437    0.3479 </code></pre>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1"><span class="co">#Midwest</span></a>
-<a class="sourceLine" id="cb40-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" title="1"><span class="co">#Midwest</span></a></code></pre></div>
 <p><strong>§ 2.5</strong> Which state has a proportion of interviewees living in a non-metropolitan area closest to 30%?</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" data-line-number="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" title="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
 <pre><code>District of Columbia           New Jersey         Rhode Island           California 
              0.00000              0.00000              0.00000              0.02048 
              Florida        Massachusetts             Maryland             New York 
@@ -701,10 +687,9 @@ Agriculture, forestry, fishing, and hunting                                 Info
              0.69431              0.70250              0.73739              0.75586 
              Montana               Alaska              Wyoming 
              0.83608              1.00000              1.00000 </code></pre>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1"><span class="co">#Wisconsin</span></a>
-<a class="sourceLine" id="cb43-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" title="1"><span class="co">#Wisconsin</span></a></code></pre></div>
 <p>Which state has the largest proportion of non-metropolitan interviewees, ignoring states where all interviewees were non-metropolitan?</p>
-<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" title="1"><span class="kw">tapply</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroAreaCode), A<span class="op">$</span>State, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort</a></code></pre></div>
 <pre><code>District of Columbia           New Jersey         Rhode Island           California 
              0.00000              0.00000              0.00000              0.02048 
              Florida        Massachusetts             Maryland             New York 
@@ -731,34 +716,24 @@ Agriculture, forestry, fishing, and hunting                                 Info
              0.69431              0.70250              0.73739              0.75586 
              Montana               Alaska              Wyoming 
              0.83608              1.00000              1.00000 </code></pre>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb46-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><br><br><br></p>
 </div>
 <div id="section-3-integrating-metropolitan-area-data" class="section level3">
 <h3>Section-3 Integrating Metropolitan Area Data</h3>
 <p><strong>§ 3.1</strong> How many observations (codes for metropolitan areas) are there in MetroAreaMap?</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb47-1" data-line-number="1"><span class="kw">nrow</span>(MetroAreaMap)</a></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" title="1"><span class="kw">nrow</span>(MetroAreaMap)</a></code></pre></div>
 <pre><code>[1] 271</code></pre>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb49-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb49-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p>How many observations (codes for countries) are there in CountryMap?</p>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb50-1" data-line-number="1"><span class="kw">nrow</span>(CountryMap)</a></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" title="1"><span class="kw">nrow</span>(CountryMap)</a></code></pre></div>
 <pre><code>[1] 149</code></pre>
-<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb52-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb52-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 3.2</strong> What is the name of the variable that was added to the data frame by the merge() operation?</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb53-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb53-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
-<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb54-1" data-line-number="1">A =<span class="st"> </span><span class="kw">merge</span>(A, MetroAreaMap, <span class="dt">by.x=</span><span class="st">&quot;MetroAreaCode&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;Code&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb54-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" title="1">A =<span class="st"> </span><span class="kw">merge</span>(A, CountryMap, <span class="dt">by.x=</span><span class="st">&quot;CountryOfBirthCode&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;Code&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb47-1" title="1">A =<span class="st"> </span><span class="kw">merge</span>(A, MetroAreaMap, <span class="dt">by.x=</span><span class="st">&quot;MetroAreaCode&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;Code&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 <p>How many interviewees have a missing value for the new metropolitan area variable?</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb55-1" data-line-number="1"><span class="kw">sum</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroArea))</a></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb48-1" title="1"><span class="kw">sum</span>(<span class="kw">is.na</span>(A<span class="op">$</span>MetroArea))</a></code></pre></div>
 <pre><code>[1] 34238</code></pre>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb57-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb57-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 3.3</strong> Which metropolitan areas has the largest number of interviewees?</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb58-1" data-line-number="1"><span class="kw">table</span>(A<span class="op">$</span>MetroArea) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb50-1" title="1"><span class="kw">table</span>(A<span class="op">$</span>MetroArea) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
 <pre><code>
               Providence-Fall River-Warwick, MA-RI 
                                               2284 
@@ -772,97 +747,79 @@ Agriculture, forestry, fishing, and hunting                                 Info
                                               4177 
 New York-Northern New Jersey-Long Island, NY-NJ-PA 
                                               5409 </code></pre>
-<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb60-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb60-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 3.4</strong> Which metropolitan area has the highest proportion of interviewees of Hispanic ethnicity?</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb61-1" data-line-number="1"><span class="kw">tapply</span>(A<span class="op">$</span>Hispanic, A<span class="op">$</span>MetroArea, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb52-1" title="1"><span class="kw">tapply</span>(A<span class="op">$</span>Hispanic, A<span class="op">$</span>MetroArea, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
 <pre><code>           San Antonio, TX              El Centro, CA                El Paso, TX 
                     0.6442                     0.6869                     0.7910 
  Brownsville-Harlingen, TX McAllen-Edinburg-Pharr, TX                 Laredo, TX 
                     0.7975                     0.9487                     0.9663 </code></pre>
-<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb63-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb63-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 3.5</strong> Determine the number of metropolitan areas in the United States from which at least 20% of interviewees are Asian.</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb64-1" data-line-number="1"><span class="kw">tapply</span>(A<span class="op">$</span>Race <span class="op">==</span><span class="st"> &quot;Asian&quot;</span>, A<span class="op">$</span>MetroArea, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb54-1" title="1"><span class="kw">tapply</span>(A<span class="op">$</span>Race <span class="op">==</span><span class="st"> &quot;Asian&quot;</span>, A<span class="op">$</span>MetroArea, mean) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
 <pre><code>                 Warner Robins, GA                         Fresno, CA 
                             0.1667                             0.1848 
              Vallejo-Fairfield, CA San Jose-Sunnyvale-Santa Clara, CA 
                             0.2030                             0.2418 
  San Francisco-Oakland-Fremont, CA                       Honolulu, HI 
                             0.2468                             0.5019 </code></pre>
-<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb66-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb66-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 3.6</strong> Passing na.rm=TRUE to the tapply function, determine which metropolitan area has the smallest proportion of interviewees who have received no high school diploma.</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb67-1" data-line-number="1"><span class="kw">tapply</span>(A<span class="op">$</span>Education<span class="op">==</span><span class="st">'No high school diploma'</span>, A<span class="op">$</span>MetroArea, mean, <span class="dt">na.rm=</span>T) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb67-2" data-line-number="2"><span class="st">  </span>sort <span class="op">%&gt;%</span><span class="st"> </span>head</a></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb56-1" title="1"><span class="kw">tapply</span>(A<span class="op">$</span>Education<span class="op">==</span><span class="st">&#39;No high school diploma&#39;</span>, A<span class="op">$</span>MetroArea, mean, <span class="dt">na.rm=</span>T) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb56-2" title="2"><span class="st">  </span>sort <span class="op">%&gt;%</span><span class="st"> </span>head</a></code></pre></div>
 <pre><code>           Iowa City, IA        Bowling Green, KY    Kalamazoo-Portage, MI 
                  0.02913                  0.03704                  0.05051 
     Champaign-Urbana, IL Bremerton-Silverdale, WA             Lawrence, KS 
                  0.05155                  0.05405                  0.05952 </code></pre>
-<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb69-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb69-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><br><br></p>
 <hr />
 </div>
 <div id="section-4-integrating-country-of-birth-data" class="section level3">
 <h3>Section-4 Integrating Country of Birth Data</h3>
 <p><strong>§ 4.1</strong> What is the name of the variable added to the CPS data frame by this merge operation?</p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb70-1" data-line-number="1">A =<span class="st"> </span><span class="kw">merge</span>(A, CountryMap, <span class="dt">by.x=</span><span class="st">&quot;CountryOfBirthCode&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;Code&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb70-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb70-3" data-line-number="3"><span class="co">#</span></a>
-<a class="sourceLine" id="cb70-4" data-line-number="4"><span class="co">#</span></a></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb58-1" title="1"><span class="kw">names</span>(<span class="kw">merge</span>(A, CountryMap, <span class="dt">by.x=</span><span class="st">&quot;CountryOfBirthCode&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;Code&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>))</a></code></pre></div>
+<pre><code> [1] &quot;CountryOfBirthCode&quot; &quot;MetroAreaCode&quot;      &quot;PeopleInHousehold&quot;  &quot;Region&quot;            
+ [5] &quot;State&quot;              &quot;Age&quot;                &quot;Married&quot;            &quot;Sex&quot;               
+ [9] &quot;Education&quot;          &quot;Race&quot;               &quot;Hispanic&quot;           &quot;Citizenship&quot;       
+[13] &quot;EmploymentStatus&quot;   &quot;Industry&quot;           &quot;Country.x&quot;          &quot;MetroArea&quot;         
+[17] &quot;Country.y&quot;         </code></pre>
 <p>How many interviewees have a missing value for the new <code>Country</code> variable?</p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb71-1" data-line-number="1"><span class="kw">sum</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Country))</a></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb60-1" title="1"><span class="kw">sum</span>(<span class="kw">is.na</span>(A<span class="op">$</span>Country))</a></code></pre></div>
 <pre><code>[1] 176</code></pre>
-<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb73-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb73-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 4.2</strong> Among all interviewees born outside of North America, which country was the most common place of birth?</p>
-<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb74-1" data-line-number="1"><span class="kw">table</span>(A<span class="op">$</span>Country) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">tail</span>(<span class="dv">10</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb62-1" title="1"><span class="kw">table</span>(A<span class="op">$</span>Country) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">tail</span>(<span class="dv">10</span>)</a></code></pre></div>
 <pre><code>
          Cuba       Germany       Vietnam   El Salvador   Puerto Rico         China 
           426           438           458           477           518           581 
         India   Philippines        Mexico United States 
           770           839          3921        115063 </code></pre>
-<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb76-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb76-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 4.3</strong> What proportion of the interviewees from the “New York-Northern New Jersey-Long Island, NY-NJ-PA” metropolitan area have a country of birth that is not the United States?</p>
-<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb77-1" data-line-number="1"><span class="kw">table</span>(A<span class="op">$</span>Country[A<span class="op">$</span>MetroArea<span class="op">==</span><span class="st">&quot;New York-Northern New Jersey-Long Island, NY-NJ-PA&quot;</span>] <span class="op">==</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb77-2" data-line-number="2"><span class="st">  &quot;United States&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>prop.table</a></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb64-1" title="1"><span class="kw">table</span>(A<span class="op">$</span>Country[A<span class="op">$</span>MetroArea<span class="op">==</span><span class="st">&quot;New York-Northern New Jersey-Long Island, NY-NJ-PA&quot;</span>] <span class="op">==</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb64-2" title="2"><span class="st">  &quot;United States&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>prop.table</a></code></pre></div>
 <pre><code>
  FALSE   TRUE 
 0.3087 0.6913 </code></pre>
-<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb79-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb79-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><strong>§ 4.4</strong> Which metropolitan area has the largest number (note – not proportion) of interviewees with a country of birth in India?</p>
-<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb80-1" data-line-number="1"><span class="kw">tapply</span>(A<span class="op">$</span>Country<span class="op">==</span><span class="st">&quot;India&quot;</span>, A<span class="op">$</span>MetroArea, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb66-1" title="1"><span class="kw">tapply</span>(A<span class="op">$</span>Country<span class="op">==</span><span class="st">&quot;India&quot;</span>, A<span class="op">$</span>MetroArea, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
 <pre><code>                      Kansas City, MO-KS        Milwaukee-Waukesha-West Allis, WI 
                                       11                                       12 
                               Fresno, CA       San Jose-Sunnyvale-Santa Clara, CA 
                                       16                                       19 
 Hartford-West Hartford-East Hartford, CT               Detroit-Warren-Livonia, MI 
                                       26                                       30 </code></pre>
-<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb82-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb82-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p>In Brazil?</p>
-<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb83-1" data-line-number="1"><span class="kw">tapply</span>(A<span class="op">$</span>Country<span class="op">==</span><span class="st">&quot;Brazil&quot;</span>, A<span class="op">$</span>MetroArea, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb68-1" title="1"><span class="kw">tapply</span>(A<span class="op">$</span>Country<span class="op">==</span><span class="st">&quot;Brazil&quot;</span>, A<span class="op">$</span>MetroArea, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
 <pre><code>Sacramento-Arden-Arcade-Roseville, CA                  Canton-Massillon, OH 
                                     2                                     3 
           Phoenix-Mesa-Scottsdale, AZ   Davenport-Moline-Rock Island, IA-IL 
                                     3                                     4 
 Miami-Fort Lauderdale-Miami Beach, FL        Boston-Cambridge-Quincy, MA-NH 
                                    16                                    18 </code></pre>
-<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb85-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb85-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p>In Somalia?</p>
-<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb86-1" data-line-number="1"><span class="kw">tapply</span>(A<span class="op">$</span>Country<span class="op">==</span><span class="st">&quot;Somalia&quot;</span>, A<span class="op">$</span>MetroArea, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb70-1" title="1"><span class="kw">tapply</span>(A<span class="op">$</span>Country<span class="op">==</span><span class="st">&quot;Somalia&quot;</span>, A<span class="op">$</span>MetroArea, sum) <span class="op">%&gt;%</span><span class="st"> </span>sort <span class="op">%&gt;%</span><span class="st"> </span>tail</a></code></pre></div>
 <pre><code>              York-Hanover, PA Youngstown-Warren-Boardman, OH 
                              0                              0 
                     Dayton, OH                   Richmond, VA 
                              1                              1 
    Phoenix-Mesa-Scottsdale, AZ                  St. Cloud, MN 
                              7                              7 </code></pre>
-<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb88-1" data-line-number="1"><span class="co">#</span></a>
-<a class="sourceLine" id="cb88-2" data-line-number="2"><span class="co">#</span></a></code></pre></div>
 <p><br><br><br></p>
 </div>
 
