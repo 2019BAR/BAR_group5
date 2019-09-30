@@ -17,7 +17,7 @@ knitr::opts_chunk$set(comment = NA)
 knitr::opts_knit$set(global.par = TRUE)
 par(cex=0.8); options(scipen=20, digits=4, width=90)
 if(!require(pacman)) install.packages("pacman")
-pacman::p_load(magrittr)
+pacman::p_load(dplyr)
 ```
 以上這些程式碼請大家不要去改動<br>
 
@@ -49,75 +49,55 @@ pacman::p_load(magrittr)
 
 __§ 1.1__ Our five datasets all have the same number of observations. How many observations are there in each data set?
 ```{r}
-#
-#
+L = list(
+IBM = read.csv('data/IBMstock.csv'),
+GE = read.csv('data/GEstock.csv'),
+PG = read.csv('data/ProcterGambleStock.csv'),
+CO = read.csv('data/CocaColastock.csv'),
+BOE = read.csv('data/Boeingstock.csv'))
+
 ```
 
 
 __§ 1.2__ What is the earliest year in our datasets?
 ```{r}
-#
-#
-#
-#
+IBM$Date = as.character(IBM$Date) %>% as.Date('%m/%d/%y')
+GE$Date = as.character(GE$Date) %>% as.Date('%m/%d/%y')
+PG$Date = as.character(PG$Date) %>% as.Date('%m/%d/%y')
+CO$Date = as.character(CO$Date) %>% as.Date('%m/%d/%y')
+BOE$Date = as.character(BOE$Date) %>% as.Date('%m/%d/%y')
+min(IBM$Date)
 ```
 
 __§ 1.3__ What is the latest year in our datasets?
 ```{r}
-#
-#
-```
-<br>
-
-<span style="font-size:20px">`r "\U1F4A1"`</span>
-資料框的序列 a list of data.frame
-```{r}
-#
-#
-```
-
-```{r}
-#
-#
-```
-
-```{r}
-#
-#
+max(IBM$Date)
 ```
 
 __§ 1.4__ What is the mean stock price of IBM over this time period?
 ```{r}
-#
-#
+mean(IBM$StockPrice)
 ```
 
 __§ 1.5__ What is the minimum stock price of General Electric (GE) over this time period?
 ```{r}
-#
-#
+min(GE$StockPrice)
 ```
 
 __§ 1.6__ What is the maximum stock price of Coca-Cola over this time period?
 ```{r}
-#
-#
+max(CO$StockPrice)
 ```
 
 __§ 1.7__ What is the median stock price of Boeing over this time period?
 ```{r}
-#
-#
+median(BOE$StockPrice)
 ```
 
 __§ 1.8__ What is the standard deviation of the stock price of Procter & Gamble over this time period?
 ```{r}
-#
-#
+sd(PG$StockPrice)
 ```
-
-<span style="font-size:20px">`r "\U1F4A1"`</span>
-內建的統計量功能：`mean()`, `median()`, `sd()`, `min()`, `max()`, `range()`, `summary()`
 
 <br><hr>
 
@@ -125,15 +105,19 @@ __§ 1.8__ What is the standard deviation of the stock price of Procter & Gamble
 
 __§ 2.1__ Around what year did Coca-Cola has its highest stock price in this time period? Around what year did Coca-Cola has its lowest stock price in this time period?
 ```{r}
-#
-#
+plot(CO$Date, CO$StockPrice, type='l')
+min(CO$StockPrice)
 ```
 
 
 __§ 2.2__ In March of 2000, the technology bubble burst, and a stock market crash occurred. According to this plot, which company's stock dropped more?
 ```{r}
-#
-#
+plot(IBM$Date, IBM$StockPrice, type='l', col='orange')
+lines(GE$Date, GE$StockPrice, type='l', col='cyan')
+lines(BOE$Date, BOE$StockPrice, type='l', col='pink')
+lines(CO$Date, CO$StockPrice, type='l', col='green')
+lines(PG$Date, PG$StockPrice, type='l', col='blue')
+abline(v=as.Date(c("2000-03-01","1983-01-01","1984-01-01")),col='gray',lty=3)
 ```
 
 __§ 2.3__ (a) Around 1983, the stock for one of these companies (Coca-Cola or Procter and Gamble) was going up, while the other was going down. Which one was going up? 
@@ -171,16 +155,12 @@ __§ 3.3__ In October of 1997, there was a global stock market crash that was ca
 #
 ```
 
-```{r}
-#
-#
-```
-
 __§ 3.4__ In the last two years of this time period (2004 and 2005) which stock seems to be performing the best, in terms of increasing stock price?
 ```{r}
 #
 #
 ```
+
 
 <br><hr>
 
@@ -189,28 +169,21 @@ __§ 3.4__ In the last two years of this time period (2004 and 2005) which stock
 
 __§ 4.1__ For IBM, compare the monthly averages to the overall average stock price. In which months has IBM historically had a higher stock price (on average)? Select all that apply.
 ```{r}
-#
-#
+tapply(IBM$StockPrice, format(IBM$Date,'%m'), mean)
 ```
 
 __§ 4.2__ General Electric and Coca-Cola both have their highest average stock price in the same month. Which month is this?
 ```{r}
-#
-#
+tapply(GE$StockPrice, format(GE$Date,'%m'), mean) %>% sort
+tapply(CO$StockPrice, format(CO$Date,'%m'), mean) %>% sort
 ```
 
 __§ 4.3__ For the months of December and January, every company's average stock is higher in one month and lower in the other. In which month are the stock prices lower?
 ```{r}
-#
-#
+sapply(L, function(df){ 
+  tapply(df$StockPrice, format(df$Date,'%m'), mean)
+  })
 ```
-<br>
-<p class="wwl">
-<span style="font-size:20px">`r "\U1F4DD"` UNIT2B 學習重點：</span><br>
-The Magic of the `apply()` Series：<br>
-&emsp; ■ `tapply(x, factor, fun)` : apply function to x by factor<br>
-&emsp; ■ `lapply(list, fun)` : apply function to each element of a list<br>
-&emsp; ■ `sapply()` : apply function to each element of a list and simplify the ouput<br>
-</p class="wwl">
+
 <br><br><br>
 
