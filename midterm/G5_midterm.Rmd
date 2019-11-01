@@ -1,0 +1,355 @@
+---
+title: Group 5 期中專案競賽
+author: 第 5 組 
+date: "`r Sys.time()`"
+output: 
+  html_document:
+    highlight: pygments
+    theme: flatly
+    css: ../style.css
+---
+
+```{r results='hide', message=FALSE, warning=FALSE, echo=F}
+# 這些程式碼設定網頁的格式，並安裝、載入一些基本的套件，請大家不要去改動<br>
+rm(list=ls(all=T))
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_knit$set(global.par = TRUE)
+par(cex=0.8)
+options(scipen=20, digits=5, width=80)
+if(!require(pacman)) install.packages("pacman")
+```
+<br>
+
+### § 前置作業
+```{r results='hide', message=FALSE, warning=FALSE}
+pacman::p_load(dplyr, ggplot2, readr, ggmap, maps, tm, SnowballC, wordcloud2, RColorBrewer, stringr)
+```
+
+```{r results='hide', message=FALSE, warning=FALSE}
+# ADD G DATA
+# G = read_csv("data/olist_geolocation_dataset.csv")
+# R = read_csv("data/olist_order_reviews_dataset.csv")
+# L = read_csv("data/olist_marketing_qualified_leads_dataset.csv")
+# Q = read_csv("data/olist_closed_deals_dataset.csv")
+# I = read_csv("data/olist_order_items_dataset.csv")
+# C = read_csv("data/olist_customers_dataset.csv")
+# O = read_csv("data/olist_orders_dataset.csv")
+# P = read_csv("data/olist_products_dataset.csv")
+# S = read_csv("data/olist_sellers_dataset.csv")
+# TPC = read_csv("data/product_category_name_translation.csv")
+# load("data/R.rdata")
+# 
+# attr(G, "spec") = NULL
+# attr(R, "spec") = NULL
+# attr(L, "spec") = NULL
+# attr(Q, "spec") = NULL
+# attr(I, "spec") = NULL
+# attr(C, "spec") = NULL
+# attr(O, "spec") = NULL
+# attr(P, "spec") = NULL
+# attr(S, "spec") = NULL
+# attr(TPC, "spec") = NULL
+# 
+# save(G,R,L,Q,I,C,O,P,S,TPC, file="data/olistdata.rdata")
+```
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+讀完原始資料之後，先將資料壓縮起來，之後再從壓縮檔讀進會比較快、比較方便<br>
+
+```{r}
+rm(list=ls(all=T))
+load("data/olistdata.rdata")
+```
+
+
+### 評論
+### 評論分析
+```{r}
+OR <- left_join(O,R,by="order_id")
+OR$review_score %>% table %>% prop.table()
+
+OR <- OR[!duplicated(OR$review_id),] 
+OR %>% ggplot(aes(review_score)) + 
+  geom_bar(fill="blue") +
+  geom_text(stat='count', aes(label=..count..), vjust=-0.2) +
+  ggtitle("買家&訂單")
+```
+```{r}
+OR$low_score = sapply(OR$review_score, function(x){
+  ifelse(x<4, TRUE, FALSE)
+  })
+prop.table(table(OR$low_score))
+```
+```{r}
+text <- R$message %>% na.omit %>% iconv("UTF-8")
+docs <- Corpus(VectorSource(text))
+toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
+docs <- docs %>% 
+  tm_map(toSpace, "/") %>% 
+  tm_map(toSpace, "@") %>% 
+  tm_map(toSpace, "\\|") %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(stripWhitespace) %>%
+  tm_map(content_transformer(tolower)) %>%
+  tm_map(removeWords, stopwords("english"))
+
+matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+df <- data.frame(word = names(words),freq=words)
+head(df, 10)
+wordcloud2(data=df, size=1.6, color='random-dark')
+```
+```{r results='hide'}
+R3 <- R %>% filter(review_score <= 3) 
+text <- R3$message %>% na.omit %>% iconv("UTF-8")
+docs <- Corpus(VectorSource(text))
+docs <- docs %>% 
+  tm_map(toSpace, "/") %>% 
+  tm_map(toSpace, "@") %>% 
+  tm_map(toSpace, "\\|") %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(stripWhitespace) %>%
+  tm_map(content_transformer(tolower)) %>%
+  tm_map(removeWords, stopwords("english"))
+
+matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+df <- data.frame(word = names(words),freq=words)
+head(df, 10)
+wordcloud2(data=df, size=1.6, color='random-dark')
+```
+```{r results='hide'}
+R1 <- R %>% filter(review_score <= 1) 
+text <- R3$message %>% na.omit %>% iconv("UTF-8")
+docs <- Corpus(VectorSource(text))
+docs <- docs %>% 
+  tm_map(toSpace, "/") %>% 
+  tm_map(toSpace, "@") %>% 
+  tm_map(toSpace, "\\|") %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(stripWhitespace) %>%
+  tm_map(content_transformer(tolower)) %>%
+  tm_map(removeWords, stopwords("english"))
+
+matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+df <- data.frame(word = names(words),freq=words)
+head(df, 10)
+wordcloud2(data=df, size=1.6, color='random-dark')
+```
+
+
+
+<br><hr>
+
+### 列出想作項目
+##### 問題：以分析order的運費為主：
+1. 分析所有訂單依照產品別的運費
+2. 各地區(city, state)有多少筆訂單
+3. 客戶與工廠在各地區的分佈關係
+4. 統計實際送達與預期送達日之間的落差
+
+##### 理由：
+1. 統計出各產品的運費總額、各地區的訂單需求。藉由以上分析，得出運費產生主要在哪些產品別的運輸上。
+2. 客戶與工廠的分佈概況，客戶與工廠之間距離接近的狀況，可採取直接領貨的方式。並計算實際送達的日數落差，來進行運輸效率之分析。
+3. 經由以上產品運費與運輸效率的統計與分析，未來可做為電商設置集運中心的可能性評估。
+
+* EDA 參考: https://www.kaggle.com/andresionek/geospatial-analysis-of-brazilian-e-commerce#Who-pays-more-for-transportation
+
+### 探討問題
+##### 1.1 分析所有訂單依照「產品」的運費總額與產品價格關係
+##### 1.2 分析所有訂單依照「產品分類」的運費總額與產品價格關係
+```{r}
+# freightFee1 = I %>% group_by(product_id) %>% summarise(
+#   noFreightFee = n(),
+#   totalFreight = sum(freight_value),
+#   pfMeanDiff = mean(price-freight_value),
+#   minFreight = min(freight_value)
+#   )
+# #summary(freightFee1)
+
+#1.2分析產品分類的運費總額、(產品價格-運費)的平均
+freightFee1 = merge(x = I, y = P, by = "product_id", all.x =  TRUE) %>%
+   select (product_id, product_category_name, price, freight_value) %>%
+  group_by (product_category_name) %>% 
+  summarise(
+    totalFreight = sum(freight_value),
+    pfMeanDiff = mean(price-freight_value)
+  )
+#freightFee1
+```
+
+
+### 2. 各地區(city, state)有多少筆訂單
+* 我們就要依`customer_id`做彙總； 先從訂單(`O`)做起 
+```{r}
+
+# OrdersOfCustomer = O %>% group_by(customer_id) %>% summarise(
+#   CustomerOrderTotal =n()
+#   )
+# OrdersOfCustomer = I %>% group_by(order_id) %>% summarise(
+#   itemTotal =n()
+#   )
+# OrdersOfCustomer
+
+# CorderCount = C %>% left_join(OrdersOfCustomer)
+# is.na(CorderCount) %>% colSums
+# CorderCount
+
+#1.客戶所在地區的訂單數量 Left join, 可能有的地區沒有訂單
+OrdersOfState = left_join(C, O) %>%
+  count(customer_state, sort=TRUE)
+#OrdersOfState
+
+#2.客戶所在城市的訂單數量 Left join, 可能有的城市沒有訂單
+OrdersOfCity = left_join(C, O) %>%
+  count(customer_city, sort=TRUE)
+#OrdersOfCity
+```
+
+
+### 3. 客戶與工廠在各地區的分佈關係 
+```{r}
+#1. 計算客戶訂單的運費加總、產品平均價格
+CustomerFee = merge(x = O, y = I, by = "order_id", all =  TRUE) %>%
+   select (customer_id, price, freight_value) %>%
+  group_by (customer_id) %>% 
+  summarise(
+    customerTotalFreight = sum(freight_value),
+    customerPriceMean = mean(price)
+  )
+#2. 找出客戶地區的運費加總、產品平均價格, Left join 可能有的客戶沒有訂單
+CustomerStateFee = merge(x = C, y = CustomerFee, by = "customer_id", all.x =  TRUE) %>%
+   select (customer_zip_code_prefix, customer_city, customer_state, customerPriceMean, customerTotalFreight) %>%
+  group_by (customer_state) %>% 
+  summarise(
+    customerStateTotalFreight = sum(customerTotalFreight),
+    customerStateMeanPrice = mean(customerPriceMean)
+  )
+#CustomerStateFee
+#3. 計算賣家的訂單中的運費加總、產品平均價格
+SellerFee = merge(x = O, y = I, by = "order_id", all =  TRUE) %>%
+   select (seller_id, price, freight_value) %>%
+  group_by (seller_id) %>%
+  summarise(
+    sellerTotalFreight = sum(freight_value),
+    sellerPriceMean = mean(price)
+  )
+
+#4.找出賣家地區的運費總額、產品平均價格, Left join 可能有的賣家沒有訂單
+SellerStateFee = merge(x = S, y = SellerFee, by = "seller_id", all.x =  TRUE) %>%
+   select (seller_zip_code_prefix, seller_city, seller_state, sellerPriceMean, sellerTotalFreight) %>%
+  group_by (seller_state) %>%
+  summarise(
+    sellerStateTotalFreight = sum(sellerTotalFreight),
+    sellerStatePriceMean = mean(sellerPriceMean)
+  )
+ggplot(SellerStateFee, aes(x=seller_state,y=sellerStatePriceMean))+
+  geom_point()
+```
+
+### 資料處理
+##### 地圖
+```{r}
+# Removing some outliers
+# Brazils most Northern spot is at 5 deg 16′ 27.8″ N latitude.;
+G = G[G$geolocation_lat <= 5.27438888,]
+# it’s most Western spot is at 73 deg, 58′ 58.19″W Long.
+G = G[G$geolocation_lng >= -73.98283055,]
+# It’s most southern spot is at 33 deg, 45′ 04.21″ S Latitude.
+G = G[G$geolocation_lat >= -33.75116944,]
+# It’s most Eastern spot is 34 deg, 47′ 35.33″ W Long.
+G = G[G$geolocation_lng <=  -34.79314722,]
+Brazil = map_data("world") %>% filter(region=="Brazil")
+BM <- borders("world", regions = "Brazil", fill = "grey70", colour = "black")
+# 巴西地圖基底
+bm = ggplot() + geom_polygon(data = Brazil, aes(x=long, y = lat, group = group), fill="lightgray");bm
+
+```
+<br>
+
+##### 買賣家位置設定
+```{r}
+sl <- G %>% group_by(geolocation_city) %>% summarise(s_lat = max(geolocation_lat),s_lng=max(geolocation_lng))
+cl <- G %>% group_by(geolocation_city) %>% summarise(c_lat = max(geolocation_lat),c_lng=max(geolocation_lng))
+
+# clean
+sl = sl[sl$s_lat <= 5.27438888,];sl = sl[sl$s_lng >= -73.98283055,]
+sl = sl[sl$s_lat >= -33.75116944,];sl = sl[sl$s_lng <=  -34.79314722,]
+
+cl = cl[cl$c_lat <= 5.27438888,];cl = cl[cl$c_lng >= -73.98283055,]
+cl = cl[cl$c_lat >= -33.75116944,];cl = cl[cl$c_lng <=  -34.79314722,]
+
+sc_loc <- c(sl$s_lat, sl$s_lng, cl$c_lat, cl$c_lng)
+```
+
+
+```{r}
+# bm + geom_point(data = G, aes(x=geolocation_lng, y=geolocation_lat, color=geolocation_state),size=0.2)
+```
+
+
+##### 合併成大表
+```{r}
+IS <- left_join(I,S)
+OC <- left_join(O,C)
+BAA <- OC %>% left_join(.,IS,by="order_id") %>%
+  left_join(.,P) %>%
+  left_join(.,sl,by=c('seller_city'='geolocation_city')) %>%
+  left_join(.,cl,by=c('customer_city'='geolocation_city'))
+```
+
+##### 顧客分布
+```{r}
+n_distinct(BAA$customer_unique_id)
+bm + geom_point(data=BAA,aes(x=c_lng,y=c_lat,color=customer_state),size=0.2)
+```
+
+##### 賣家分布
+```{r}
+n_distinct(BAA$seller_id)
+bm + geom_point(data=BAA,aes(x=s_lng,y=s_lat,color=seller_state),size=0.5)
+```
+
+```{r}
+scc <- BAA %>%
+  group_by(s_lat,s_lng,c_lat,c_lng) %>%
+  summarise(count=n()) %>%
+  arrange(desc(count))
+scc1 <- scc[1:300,]
+bm +  
+  geom_point(data=scc1, aes(x=c_lng, y=c_lat), col="red", size=0.5) +
+  geom_point(data=scc1, aes(x=s_lng, y=s_lat), col="blue", size=0.5) +
+  geom_segment(data=scc1, aes(x=s_lng, y=s_lat, xend=c_lng, yend=c_lat),
+              col="black", size=.01)
+```
+
+### 4.
+
+```{r}
+C$order_delivered_delay<-
+  as.Date(O$order_delivered_customer_date)-as.Date(O$order_estimated_delivery_date)
+#C$avgdelay<-mean(order_delivered_delay,na.rm=TRUE)
+#訂單的平均誤點天數,數值為負代表提早送達
+tapply(C$order_delivered_delay,C$customer_zip_code_prefix,mean)%>%sort %>% plot %>% abline(v=,h=0,col='red')
+
+
+
+tapply(C$order_delivered_delay,C$customer_zip_code_prefix,mean)%>%sort %>%tail(123)%>%plot
+ #依照city為分組依據計算各city的平均誤點天數,以下為延緩送到的city,共有123個城市平均為延緩。
+ #select(C,C$customer_delivered_delay,C$order_delivered_delay)
+day_p<-filter(C,order_delivered_delay>0)
+summary(day_p)
+#這個寫到一半，要把它用到zipcode
+```
+### 各州訂單(由小到大排列)
+```{r}
+OC1 <- left_join(O, C, by = "customer_id")
+OC1<-OC %>%
+  group_by(customer_state) %>% 
+  mutate(no_order=n()) %>% 
+  arrange(desc(no_order))
+ggplot(OC1,aes(customer_state))+geom_bar()
+```
