@@ -62,7 +62,7 @@ load("data/olistdata.rdata")
 
 
 ### 評論
-### 評論分析
+##### 評論分析
 ```{r}
 OR <- left_join(O,R,by="order_id")
 OR$review_score %>% table %>% prop.table()
@@ -79,7 +79,8 @@ OR$low_score = sapply(OR$review_score, function(x){
   })
 prop.table(table(OR$low_score))
 ```
-```{r}
+##### 全部評論
+```{r results='hide', message=FALSE, warning=FALSE}
 text <- R$message %>% na.omit %>% iconv("UTF-8")
 docs <- Corpus(VectorSource(text))
 toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
@@ -91,15 +92,21 @@ docs <- docs %>%
   tm_map(removePunctuation) %>%
   tm_map(stripWhitespace) %>%
   tm_map(content_transformer(tolower)) %>%
-  tm_map(removeWords, stopwords("english"))
+  tm_map(removeWords, stopwords("english")) 
+```
 
+##### 文字雲
+```{r}
 matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
 wordcloud2(data=df, size=1.6, color='random-dark')
 ```
-```{r results='hide'}
+br>
+
+##### 評論星等小於三
+```{r results='hide', message=FALSE, warning=FALSE}
 R3 <- R %>% filter(review_score <= 3) 
 text <- R3$message %>% na.omit %>% iconv("UTF-8")
 docs <- Corpus(VectorSource(text))
@@ -112,14 +119,22 @@ docs <- docs %>%
   tm_map(stripWhitespace) %>%
   tm_map(content_transformer(tolower)) %>%
   tm_map(removeWords, stopwords("english"))
+```
 
+##### 文字雲
+```{r}
 matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
-wordcloud2(data=df, size=1.6, color='random-dark')
+wordcloud2(data=df, size=1.6, color='random')
 ```
-```{r results='hide'}
+br>
+
+<br>
+
+##### 評論分數等於 1
+```{r results='hide', message=FALSE, warning=FALSE}
 R1 <- R %>% filter(review_score <= 1) 
 text <- R3$message %>% na.omit %>% iconv("UTF-8")
 docs <- Corpus(VectorSource(text))
@@ -132,15 +147,17 @@ docs <- docs %>%
   tm_map(stripWhitespace) %>%
   tm_map(content_transformer(tolower)) %>%
   tm_map(removeWords, stopwords("english"))
+```
 
+##### 文字雲
+```{r}
 matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
 wordcloud2(data=df, size=1.6, color='random-dark')
 ```
-
-
+br>
 
 <br><hr>
 
