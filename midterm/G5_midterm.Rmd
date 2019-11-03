@@ -130,7 +130,10 @@ matrix <- docs %>% TermDocumentMatrix() %>% as.matrix()
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
-wordcloud2(data=df, size=1.6, color='random-dark')
+```
+```{r results='hide', message=FALSE, warning=FALSE}
+# wordcloud2 knit bug
+# wordcloud2(data=df, size=1.6, color='random-dark')
 ```
 br>
 
@@ -158,7 +161,7 @@ words <- sort(rowSums(matrix),decreasing=TRUE)
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
 ```
-```{r results='hide', message=FALSE, warning=FALSE}
+```{r}
 wordcloud2(data=df, size=1.6, color='random-dark')
 ```
 br>
@@ -405,7 +408,6 @@ group後，summarise 算出各州State 的運費與產品價格
 
 (3) 透過比對各州state 顧客與賣家的運費與產品價格，發現SP是銷售與運送最大量的州，而且與其他州差距巨大，因此在SP建置實體通路商場，將可以進一步提高銷售、降低運費
 
-(4) 有四個AL、AP、RR、TO州是有銷售資料、但無賣家運費或銷售數據，可以建議賣家在這四個州(或臨近州)設置物流倉儲，可以降低從賣家所在地的運輸成本
 
 ```{r}
 #先將訂單與細項join
@@ -446,9 +448,9 @@ SellerStateFee <- SellerState %>%
   arrange(seller_state)
 
 # outter join 兩張表
-StateAllFee <- full_join(CustomerStateFee, SellerStateFee, by = c("customer_state" = "seller_state"))
+StateAllFee <- full_join(CustomerStateFee, SellerStateFee, by = c("customer_state" = "seller_state")) %>% arrange(desc(sellerStateFreight))
 
-summary(StateAllFee)
+StateAllFee
 ```
 
 ##### 各州訂單(由小到大排列)
@@ -468,15 +470,15 @@ ggplot(OC1,aes(customer_state)) + geom_bar()
 ```{r}
 C$order_delivered_delay<-
   as.Date(O$order_delivered_customer_date)-as.Date(O$order_estimated_delivery_date)
-#C$avgdelay<-mean(order_delivered_delay,na.rm=TRUE)
-#訂單的平均誤點天數,數值為負代表提早送達
+# C$avgdelay<-mean(order_delivered_delay,na.rm=TRUE)
+# 訂單的平均誤點天數,數值為負代表提早送達
 tapply(C$order_delivered_delay,C$customer_zip_code_prefix,mean)%>%sort %>% plot %>% abline(v=,h=0,col='red')
 
 
 
 tapply(C$order_delivered_delay,C$customer_zip_code_prefix,mean)%>%sort %>%tail(123)%>%plot
- #依照city為分組依據計算各city的平均誤點天數,以下為延緩送到的city,共有123個城市平均為延緩。
- #select(C,C$customer_delivered_delay,C$order_delivered_delay)
+# 依照city為分組依據計算各city的平均誤點天數,以下為延緩送到的city,共有123個城市平均為延緩。
+# select(C,C$customer_delivered_delay,C$order_delivered_delay)
 day_p<-filter(C,order_delivered_delay>0)
 summary(day_p)
 ```
