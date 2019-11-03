@@ -22,35 +22,35 @@ if(!require(pacman)) install.packages("pacman")
 
 ### § 前置作業
 ```{r results='hide', message=FALSE, warning=FALSE}
-pacman::p_load(dplyr, ggplot2, readr, ggmap, maps, tm, SnowballC, wordcloud2, RColorBrewer, stringr)
+pacman::p_load(dplyr, ggplot2, readr, ggmap, maps, tm, SnowballC, wordcloud2, RColorBrewer, stringr,slam,EnvStats, gganimate, gifski)
 ```
 
 ```{r results='hide', message=FALSE, warning=FALSE}
-# ADD G DATA
-# G = read_csv("data/olist_geolocation_dataset.csv")
-# R = read_csv("data/olist_order_reviews_dataset.csv")
-# L = read_csv("data/olist_marketing_qualified_leads_dataset.csv")
-# Q = read_csv("data/olist_closed_deals_dataset.csv")
-# I = read_csv("data/olist_order_items_dataset.csv")
-# C = read_csv("data/olist_customers_dataset.csv")
-# O = read_csv("data/olist_orders_dataset.csv")
-# P = read_csv("data/olist_products_dataset.csv")
-# S = read_csv("data/olist_sellers_dataset.csv")
-# TPC = read_csv("data/product_category_name_translation.csv")
-# load("data/R.rdata")
-# 
-# attr(G, "spec") = NULL
-# attr(R, "spec") = NULL
-# attr(L, "spec") = NULL
-# attr(Q, "spec") = NULL
-# attr(I, "spec") = NULL
-# attr(C, "spec") = NULL
-# attr(O, "spec") = NULL
-# attr(P, "spec") = NULL
-# attr(S, "spec") = NULL
-# attr(TPC, "spec") = NULL
-# 
-# save(G,R,L,Q,I,C,O,P,S,TPC, file="data/olistdata.rdata")
+ #ADD G DATA
+ # G = read_csv("data/olist_geolocation_dataset.csv")
+ # R = read_csv("data/olist_order_reviews_dataset.csv")
+ # L = read_csv("data/olist_marketing_qualified_leads_dataset.csv")
+ # Q = read_csv("data/olist_closed_deals_dataset.csv")
+ # I = read_csv("data/olist_order_items_dataset.csv")
+ # C = read_csv("data/olist_customers_dataset.csv")
+ # O = read_csv("data/olist_orders_dataset.csv")
+ # P = read_csv("data/olist_products_dataset.csv")
+ # S = read_csv("data/olist_sellers_dataset.csv")
+ # TPC = read_csv("data/product_category_name_translation.csv")
+ # load("data/R.rdata")
+ # 
+ # attr(G, "spec") = NULL
+ # attr(R, "spec") = NULL
+ # attr(L, "spec") = NULL
+ # attr(Q, "spec") = NULL
+ # attr(I, "spec") = NULL
+ # attr(C, "spec") = NULL
+ # attr(O, "spec") = NULL
+ # attr(P, "spec") = NULL
+ # attr(S, "spec") = NULL
+ # attr(TPC, "spec") = NULL
+ # 
+ # save(G,R,L,Q,I,C,O,P,S,TPC, file="data/olistdata.rdata")
 ```
 <span style="font-size:24px">`r "\U1F4A1"`</span>
 讀完原始資料之後，先將資料壓縮起來，之後再從壓縮檔讀進會比較快、比較方便<br>
@@ -60,10 +60,21 @@ rm(list=ls(all=T))
 load("data/olistdata.rdata")
 ```
 
-
-### 評論
-##### 評論分析
+### ◆ Part.1 資料探索
+##### 顧客分析
+* 一次性顧客佔了96.9%，過多
 ```{r}
+Q <- group_by(C, customer_unique_id) %>% summarise(nid=n())
+dim(Q)
+table(Q$nid) %>% prop.table() %>% round(3)
+```
+
+
+
+##### 評論分析
+* 一星至五星
+```{r}
+#下圖由左至右分別表示1~5星的評價比數各有多少。
 OR <- left_join(O,R,by="order_id")
 OR$review_score %>% table %>% prop.table()
 
@@ -73,15 +84,32 @@ OR %>% ggplot(aes(review_score)) +
   geom_text(stat='count', aes(label=..count..), vjust=-0.2) +
   ggtitle("買家&訂單")
 ```
+* 三星以下
+```{r}
+#下圖由左至右分別表示1~3星的評價比數各有多少。
+OR <- left_join(O,R,by="order_id")
+OR$review_score %>% table %>% prop.table() 
+OR123 <- filter(OR,review_score<=3)
+OR123 <- OR123[!duplicated(OR123$review_id),] 
+OR123 %>% ggplot(aes(review_score)) + 
+  geom_bar(fill="blue") +
+  geom_text(stat='count', aes(label=..count..), vjust=-0.2) +
+  ggtitle("買家&訂單")
+
+```
+##### 低評分佔比
 ```{r}
 OR$low_score = sapply(OR$review_score, function(x){
-  ifelse(x<4, TRUE, FALSE)
+  ifelse(x <= 3, TRUE, FALSE)
   })
 prop.table(table(OR$low_score))
 ```
+
+
 ##### 全部評論
 ```{r results='hide', message=FALSE, warning=FALSE}
 text <- R$message %>% na.omit %>% iconv("UTF-8")
+docs <- Corpus(VectorSource(text))
 docs <- Corpus(VectorSource(text))
 toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
 docs <- docs %>% 
@@ -95,7 +123,7 @@ docs <- docs %>%
   tm_map(removeWords, stopwords("english")) 
 ```
 
-##### 文字雲
+##### 文字雲1
 ```{r}
 matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
 words <- sort(rowSums(matrix),decreasing=TRUE) 
@@ -106,11 +134,12 @@ wordcloud2(data=df, size=1.6, color='random-dark')
 br>
 
 ##### 評論星等小於三
+* 找到評論星等小於3之後，做成文字雲，去與所有評論的文字雲做比對。
 ```{r results='hide', message=FALSE, warning=FALSE}
 R3 <- R %>% filter(review_score <= 3) 
-text <- R3$message %>% na.omit %>% iconv("UTF-8")
-docs <- Corpus(VectorSource(text))
-docs <- docs %>% 
+text2 <- R3$message %>% na.omit %>% iconv("UTF-8")
+docs2 <- Corpus(VectorSource(text2))
+docs2 <- docs2 %>% 
   tm_map(toSpace, "/") %>% 
   tm_map(toSpace, "@") %>% 
   tm_map(toSpace, "\\|") %>%
@@ -121,37 +150,9 @@ docs <- docs %>%
   tm_map(removeWords, stopwords("english"))
 ```
 
-##### 文字雲
+##### 文字雲2
 ```{r}
-matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
-words <- sort(rowSums(matrix),decreasing=TRUE) 
-df <- data.frame(word = names(words),freq=words)
-head(df, 10)
-wordcloud2(data=df, size=1.6, color='random')
-```
-br>
-
-<br>
-
-##### 評論分數等於 1
-```{r results='hide', message=FALSE, warning=FALSE}
-R1 <- R %>% filter(review_score <= 1) 
-text <- R3$message %>% na.omit %>% iconv("UTF-8")
-docs <- Corpus(VectorSource(text))
-docs <- docs %>% 
-  tm_map(toSpace, "/") %>% 
-  tm_map(toSpace, "@") %>% 
-  tm_map(toSpace, "\\|") %>%
-  tm_map(removeNumbers) %>%
-  tm_map(removePunctuation) %>%
-  tm_map(stripWhitespace) %>%
-  tm_map(content_transformer(tolower)) %>%
-  tm_map(removeWords, stopwords("english"))
-```
-
-##### 文字雲
-```{r}
-matrix <- docs %>% TermDocumentMatrix() %>% as.matrix() 
+matrix <- docs2 %>% TermDocumentMatrix() %>% as.matrix() 
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
@@ -159,115 +160,103 @@ wordcloud2(data=df, size=1.6, color='random-dark')
 ```
 br>
 
-<br><hr>
+##### 評論分數等於 1
+* 找到評論星等為1之後，做成文字雲，去與上面兩個文字雲做比對。
+```{r results='hide', message=FALSE, warning=FALSE}
+R1 <- R %>% filter(review_score <= 1) 
+text3 <- R1$message %>% na.omit %>% iconv("UTF-8")
+docs3 <- Corpus(VectorSource(text3))
+docs3 <- docs3 %>% 
+  tm_map(toSpace, "/") %>% 
+  tm_map(toSpace, "@") %>% 
+  tm_map(toSpace, "\\|") %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(stripWhitespace) %>%
+  tm_map(content_transformer(tolower)) %>%
+  tm_map(removeWords, stopwords("english"))
+```
 
-### 列出想作項目
-##### 問題：以分析order的運費為主：
-1. 分析所有訂單依照產品別的運費
-2. 各地區(city, state)有多少筆訂單
-3. 客戶與工廠在各地區的分佈關係
+##### 文字雲3
+```{r}
+matrix <- docs3 %>% TermDocumentMatrix() %>% as.matrix() 
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+df <- data.frame(word = names(words),freq=words)
+head(df, 10)
+wordcloud2(data=df, size=1.6, color='random-dark')
+```
+br>
+
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+發現delivery、received、time、came在一星評論依然佔高比例，可知運送時間對顧客來說是個問題<br>
+
+<br><hr>
+### ◆ Part.2 物流分析
+##### 分析運送和評論關係 (物流天數和評論)
+```{r}
+ds <- group_by(R, order_id) %>% 
+  summarise(score = mean(review_score)) %>%
+  merge(O, ., by='order_id', all.x=T) %>%
+  na.omit()
+ds = mutate(ds, d_period=as.numeric(difftime(
+  order_delivered_customer_date, order_approved_at, units="days"))) 
+cor.test(ds$score, ds$d_period) 
+```
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+運送天數與評論星等的相關性，發現為`-0.33506`可得知運送天數越長則星等給的越低有明顯負相關<br>
+
+##### 畫出關係盒狀圖
+```{r}
+score2 <- round(ds$score, digits = 0)
+ds <- cbind(ds, score2)
+ds = ds[,-12]
+
+boxplot(formula=d_period~score2,
+        data = ds, xlab="score2", ylab = "d_period", col ="lightblue")
+```
+
+##### 去除離群值
+```{r}
+rosnerTest(ds$d_period)
+outlier <- 15 + 1.5*IQR(ds$d_period);outlier
+```
+
+
+```{r}
+ds_outlier = ds %>% filter(ds$d_period > 26.901)#ds篩出outlier
+ds = anti_join(ds, ds_outlier, by = "order_id")
+which.max(ds$d_period)
+```
+
+##### 畫出去除離群值的盒狀圖
+```{r}
+score2 <- round(ds$score, digits = 0)
+ds <-cbind(ds, score2)
+ds = ds[,-12]
+
+boxplot(formula=d_period~score2,
+        data = ds, xlab="score2", ylab = "d_period", col ="lightblue")
+```
+
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+發現運送天數越長則星等給的越低有明顯負相關，只要改善這點顧客的滿意度才有可能提升<br>
+
+##### 運費分析
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+運費除以價格比例偏高，代表消費者可能會因運費而沒有在電商平台上購買的意願<br>
+
+### ◆ Part.3 地圖探索
+##### > 問題：以分析order的運費為主：
+1. 客戶與工廠在各地區的分佈關係
+2. 分析所有訂單依照產品別的運費
+3. 各地區(city, state)有多少筆訂單
 4. 統計實際送達與預期送達日之間的落差
 
-##### 理由：
+##### > 理由：
 1. 統計出各產品的運費總額、各地區的訂單需求。藉由以上分析，得出運費產生主要在哪些產品別的運輸上。
 2. 客戶與工廠的分佈概況，客戶與工廠之間距離接近的狀況，可採取直接領貨的方式。並計算實際送達的日數落差，來進行運輸效率之分析。
 3. 經由以上產品運費與運輸效率的統計與分析，未來可做為電商設置集運中心的可能性評估。
 
-* EDA 參考: https://www.kaggle.com/andresionek/geospatial-analysis-of-brazilian-e-commerce#Who-pays-more-for-transportation
-
-### 探討問題
-##### 1.1 分析所有訂單依照「產品」的運費總額與產品價格關係
-##### 1.2 分析所有訂單依照「產品分類」的運費總額與產品價格關係
-```{r}
-# freightFee1 = I %>% group_by(product_id) %>% summarise(
-#   noFreightFee = n(),
-#   totalFreight = sum(freight_value),
-#   pfMeanDiff = mean(price-freight_value),
-#   minFreight = min(freight_value)
-#   )
-# #summary(freightFee1)
-
-#1.2分析產品分類的運費總額、(產品價格-運費)的平均
-freightFee1 = merge(x = I, y = P, by = "product_id", all.x =  TRUE) %>%
-   select (product_id, product_category_name, price, freight_value) %>%
-  group_by (product_category_name) %>% 
-  summarise(
-    totalFreight = sum(freight_value),
-    pfMeanDiff = mean(price-freight_value)
-  )
-#freightFee1
-```
-
-
-### 2. 各地區(city, state)有多少筆訂單
-* 我們就要依`customer_id`做彙總； 先從訂單(`O`)做起 
-```{r}
-
-# OrdersOfCustomer = O %>% group_by(customer_id) %>% summarise(
-#   CustomerOrderTotal =n()
-#   )
-# OrdersOfCustomer = I %>% group_by(order_id) %>% summarise(
-#   itemTotal =n()
-#   )
-# OrdersOfCustomer
-
-# CorderCount = C %>% left_join(OrdersOfCustomer)
-# is.na(CorderCount) %>% colSums
-# CorderCount
-
-#1.客戶所在地區的訂單數量 Left join, 可能有的地區沒有訂單
-OrdersOfState = left_join(C, O) %>%
-  count(customer_state, sort=TRUE)
-#OrdersOfState
-
-#2.客戶所在城市的訂單數量 Left join, 可能有的城市沒有訂單
-OrdersOfCity = left_join(C, O) %>%
-  count(customer_city, sort=TRUE)
-#OrdersOfCity
-```
-
-
-### 3. 客戶與工廠在各地區的分佈關係 
-```{r}
-#1. 計算客戶訂單的運費加總、產品平均價格
-CustomerFee = merge(x = O, y = I, by = "order_id", all =  TRUE) %>%
-   select (customer_id, price, freight_value) %>%
-  group_by (customer_id) %>% 
-  summarise(
-    customerTotalFreight = sum(freight_value),
-    customerPriceMean = mean(price)
-  )
-#2. 找出客戶地區的運費加總、產品平均價格, Left join 可能有的客戶沒有訂單
-CustomerStateFee = merge(x = C, y = CustomerFee, by = "customer_id", all.x =  TRUE) %>%
-   select (customer_zip_code_prefix, customer_city, customer_state, customerPriceMean, customerTotalFreight) %>%
-  group_by (customer_state) %>% 
-  summarise(
-    customerStateTotalFreight = sum(customerTotalFreight),
-    customerStateMeanPrice = mean(customerPriceMean)
-  )
-#CustomerStateFee
-#3. 計算賣家的訂單中的運費加總、產品平均價格
-SellerFee = merge(x = O, y = I, by = "order_id", all =  TRUE) %>%
-   select (seller_id, price, freight_value) %>%
-  group_by (seller_id) %>%
-  summarise(
-    sellerTotalFreight = sum(freight_value),
-    sellerPriceMean = mean(price)
-  )
-
-#4.找出賣家地區的運費總額、產品平均價格, Left join 可能有的賣家沒有訂單
-SellerStateFee = merge(x = S, y = SellerFee, by = "seller_id", all.x =  TRUE) %>%
-   select (seller_zip_code_prefix, seller_city, seller_state, sellerPriceMean, sellerTotalFreight) %>%
-  group_by (seller_state) %>%
-  summarise(
-    sellerStateTotalFreight = sum(sellerTotalFreight),
-    sellerStatePriceMean = mean(sellerPriceMean)
-  )
-ggplot(SellerStateFee, aes(x=seller_state,y=sellerStatePriceMean))+
-  geom_point()
-```
-
-### 資料處理
 ##### 地圖
 ```{r}
 # Removing some outliers
@@ -282,7 +271,7 @@ G = G[G$geolocation_lng <=  -34.79314722,]
 Brazil = map_data("world") %>% filter(region=="Brazil")
 BM <- borders("world", regions = "Brazil", fill = "grey70", colour = "black")
 # 巴西地圖基底
-bm = ggplot() + geom_polygon(data = Brazil, aes(x=long, y = lat, group = group), fill="lightgray");bm
+bm = ggplot() + geom_polygon(data = Brazil, aes(x=long, y = lat, group = group), fill="Bisque");bm
 
 ```
 <br>
@@ -317,6 +306,22 @@ BAA <- OC %>% left_join(.,IS,by="order_id") %>%
   left_join(.,sl,by=c('seller_city'='geolocation_city')) %>%
   left_join(.,cl,by=c('customer_city'='geolocation_city'))
 ```
+* 繪出個訂單狀態圖
+* 參考:https://www.kaggle.com/anshumoudgil/olist-a-brazilian-e-commerce/code
+```{r}
+# OS_plot <- ggplot(BAA, aes(y = customer_state, x = seller_state))+
+#   geom_jitter(fill = alpha("red", 0.001), color = "blue", alpha = 0.36, size = 2.1, shape = 21) +
+#   coord_polar(start = 0) +
+#   theme_minimal() +
+#   labs(title ="Order Status :: ...{closest_state}...",
+#   x = "Seller's State", y = "Customer's State",
+#   subtitle = "States :: Sellers vs. Customers") +
+#   transition_states(order_status, transition_length = 5, state_length = 5)
+# animate(OS_plot)
+```
+
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+發現所有訂單幾乎聚集在某幾個州<br>
 
 ##### 顧客分布
 ```{r}
@@ -324,12 +329,17 @@ n_distinct(BAA$customer_unique_id)
 bm + geom_point(data=BAA,aes(x=c_lng,y=c_lat,color=customer_state),size=0.2)
 ```
 
+
 ##### 賣家分布
 ```{r}
 n_distinct(BAA$seller_id)
 bm + geom_point(data=BAA,aes(x=s_lng,y=s_lat,color=seller_state),size=0.5)
 ```
 
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+顧客及賣家都聚集在巴西東南部<br>
+
+##### 賣賣家距離
 ```{r}
 scc <- BAA %>%
   group_by(s_lat,s_lng,c_lat,c_lng) %>%
@@ -343,8 +353,103 @@ bm +
               col="black", size=.01)
 ```
 
-### 4.
+##### 2. 分析所有訂單依照「產品、分類」的運費總額與產品價格關係
+```{r}
+# 分析產品分類的運費總額、(產品價格-運費)的平均
+freightFee1 = merge(x = I, y = P, by = "product_id", all.x =  TRUE) %>%
+   select (product_id, product_category_name, price, freight_value) %>%
+  group_by (product_category_name) %>% 
+  summarise(
+    totalFreight = sum(freight_value),
+    pfMeanDiff = mean(price-freight_value)
+  )
+summary(freightFee1)
+```
 
+
+##### 3. 各地區(city, state)有多少筆訂單
+* 我們就要依`customer_id`做彙總； 先從訂單(`O`)做起 
+```{r}
+#1.客戶所在地區的訂單數量 Left join, 可能有的地區沒有訂單
+OrdersOfState = left_join(C, O) %>%
+  count(customer_state, sort=TRUE)
+summary(OrdersOfState)
+
+#2.客戶所在城市的訂單數量 Left join, 可能有的城市沒有訂單
+OrdersOfCity = left_join(C, O) %>%
+  count(customer_city, sort=TRUE)
+summary(OrdersOfCity)
+```
+
+
+##### 3. 比對客戶與賣家在各地區的運費、產品價格，找出關聯性
+(1) 從訂單資料O, I 兩個資料表開始做為資料探索的起點，透過與顧客C、賣家S的 join，
+group後，summarise 算出各州State 的運費與產品價格
+
+(2) 在join 過程中發現有顧客並沒有相關訂單資料，因此改採left join 並排除NA值
+
+(3) 透過比對各州state 顧客與賣家的運費與產品價格，發現SP是銷售與運送最大量的州，而且與其他州差距巨大，因此在SP建置實體通路商場，將可以進一步提高銷售、降低運費
+
+(4) 有四個AL、AP、RR、TO州是有銷售資料、但無賣家運費或銷售數據，可以建議賣家在這四個州(或臨近州)設置物流倉儲，可以降低從賣家所在地的運輸成本
+
+```{r}
+#先將訂單與細項join
+OrderItem1 <- inner_join(O, I, by = "order_id")
+#1. 計算顧客的訂單中的運費加總、產品加總價格
+CustomerOrder1<-OrderItem1 %>%
+  group_by(customer_id) %>%
+  summarise(
+    customerTotalFreight = sum(freight_value),
+    customerTotalPrice = sum(price)
+  )
+
+#2.找出顧客地區的運費總額 、平均運費、產品平均價格, Left join 可能有的顧客沒有訂單
+CustomerStateFee <- left_join(C, CustomerOrder1, by = "customer_id") %>%
+  group_by(customer_state) %>%
+  summarise(
+    customerStateFreight = sum(customerTotalFreight, na.rm=TRUE),
+    customerStatePrice = sum(customerTotalPrice, na.rm=TRUE)
+  ) %>%
+  arrange(customer_state)
+
+#3. 計算賣家的訂單中的運費加總、產品加總價格
+SellerOrder1<-OrderItem1 %>%
+  group_by(seller_id) %>%
+  summarise(
+    sellerTotalFreight = sum(freight_value),
+    sellerTotalPrice = sum(price)
+  )
+
+#4.找出賣家地區的運費總額 、平均運費、產品平均價格, Left join 可能有的賣家沒有訂單
+SellerState <- left_join(S, SellerOrder1, by = "seller_id")
+SellerStateFee <- SellerState %>%
+  group_by(seller_state) %>%
+  summarise(
+    sellerStateFreight = sum(sellerTotalFreight, na.rm=TRUE),
+    sellerStatePrice = sum(sellerTotalPrice, na.rm=TRUE)
+  ) %>%
+  arrange(seller_state)
+
+# outter join 兩張表
+StateAllFee <- full_join(CustomerStateFee, SellerStateFee, by = c("customer_state" = "seller_state"))
+
+summary(StateAllFee)
+```
+
+##### 各州訂單(由小到大排列)
+```{r}
+OC1 <- left_join(O, C, by = "customer_id")
+OC1 <- OC1 %>%
+  group_by(customer_state) %>% 
+  mutate(no_order=n()) %>% 
+  arrange(desc(no_order))
+ggplot(OC1,aes(customer_state)) + geom_bar()
+```
+
+<span style="font-size:24px">`r "\U1F4A1"`</span>
+訂單數量前三名的州為SP、RJ、MG(>10000)，其他有較多訂單數量的州分別為RS、PR、SC、BA(>3000)<br>
+
+##### 4.統計實際送達與預期送達日之間的落差
 ```{r}
 C$order_delivered_delay<-
   as.Date(O$order_delivered_customer_date)-as.Date(O$order_estimated_delivery_date)
@@ -359,14 +464,13 @@ tapply(C$order_delivered_delay,C$customer_zip_code_prefix,mean)%>%sort %>%tail(1
  #select(C,C$customer_delivered_delay,C$order_delivered_delay)
 day_p<-filter(C,order_delivered_delay>0)
 summary(day_p)
-#這個寫到一半，要把它用到zipcode
 ```
-### 各州訂單(由小到大排列)
-```{r}
-OC1 <- left_join(O, C, by = "customer_id")
-OC1<-OC %>%
-  group_by(customer_state) %>% 
-  mutate(no_order=n()) %>% 
-  arrange(desc(no_order))
-ggplot(OC1,aes(customer_state))+geom_bar()
-```
+
+### ◆ Part.4 商業分析應用
+
+<p class="wwl">
+<span style="font-size:24px">`r "\U1F64A"` 建議：</span><br>
+1. 透過訂單聚集地的幾個州設置物流中心，用來解決運送效率低落的問題。<br>
+2. 透過新增集運的機制給消費者，用來解決運費過高的問題。<br>
+</p class="wwl">
+<br><br>
