@@ -97,6 +97,7 @@ OR123 %>% ggplot(aes(review_score)) +
   ggtitle("買家&訂單")
 
 ```
+
 ##### 低評分佔比
 ```{r}
 OR$low_score = sapply(OR$review_score, function(x){
@@ -156,6 +157,8 @@ matrix <- docs2 %>% TermDocumentMatrix() %>% as.matrix()
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
+```
+```{r results='hide', message=FALSE, warning=FALSE}
 wordcloud2(data=df, size=1.6, color='random-dark')
 ```
 br>
@@ -183,6 +186,8 @@ matrix <- docs3 %>% TermDocumentMatrix() %>% as.matrix()
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
 head(df, 10)
+```
+```{r results='hide', message=FALSE, warning=FALSE}
 wordcloud2(data=df, size=1.6, color='random-dark')
 ```
 br>
@@ -242,6 +247,18 @@ boxplot(formula=d_period~score2,
 發現運送天數越長則星等給的越低有明顯負相關，只要改善這點顧客的滿意度才有可能提升<br>
 
 ##### 運費分析
+```{r}
+IS <- left_join(I,S)
+OC <- left_join(O,C)
+BAA <- OC %>% left_join(.,IS,by="order_id") %>% left_join(.,P) 
+tapply(FP_ratio <- BAA$freight_value/BAA$price,BAA$customer_state,mean,na.rm=TRUE)
+```
+
+#####  抓前七高的州
+```{r}
+tapply(FP_ratio <- BAA$freight_value/BAA$price,BAA$customer_state,mean,na.rm=TRUE)%>% sort %>% tail(7) %>% barplot
+```
+
 <span style="font-size:24px">`r "\U1F4A1"`</span>
 運費除以價格比例偏高，代表消費者可能會因運費而沒有在電商平台上購買的意願<br>
 
@@ -299,25 +316,22 @@ sc_loc <- c(sl$s_lat, sl$s_lng, cl$c_lat, cl$c_lng)
 
 ##### 合併成大表
 ```{r}
-IS <- left_join(I,S)
-OC <- left_join(O,C)
-BAA <- OC %>% left_join(.,IS,by="order_id") %>%
-  left_join(.,P) %>%
+BAA <- BAA  %>%
   left_join(.,sl,by=c('seller_city'='geolocation_city')) %>%
   left_join(.,cl,by=c('customer_city'='geolocation_city'))
 ```
 * 繪出個訂單狀態圖
 * 參考:https://www.kaggle.com/anshumoudgil/olist-a-brazilian-e-commerce/code
 ```{r}
-# OS_plot <- ggplot(BAA, aes(y = customer_state, x = seller_state))+
-#   geom_jitter(fill = alpha("red", 0.001), color = "blue", alpha = 0.36, size = 2.1, shape = 21) +
-#   coord_polar(start = 0) +
-#   theme_minimal() +
-#   labs(title ="Order Status :: ...{closest_state}...",
-#   x = "Seller's State", y = "Customer's State",
-#   subtitle = "States :: Sellers vs. Customers") +
-#   transition_states(order_status, transition_length = 5, state_length = 5)
-# animate(OS_plot)
+OS_plot <- ggplot(BAA, aes(y = customer_state, x = seller_state))+
+  geom_jitter(fill = alpha("red", 0.001), color = "blue", alpha = 0.36, size = 2.1, shape = 21) +
+  coord_polar(start = 0) +
+  theme_minimal() +
+  labs(title ="Order Status :: ...{closest_state}...",
+  x = "Seller's State", y = "Customer's State",
+  subtitle = "States :: Sellers vs. Customers") +
+  transition_states(order_status, transition_length = 5, state_length = 5)
+animate(OS_plot)
 ```
 
 <span style="font-size:24px">`r "\U1F4A1"`</span>
@@ -339,7 +353,8 @@ bm + geom_point(data=BAA,aes(x=s_lng,y=s_lat,color=seller_state),size=0.5)
 <span style="font-size:24px">`r "\U1F4A1"`</span>
 顧客及賣家都聚集在巴西東南部<br>
 
-##### 賣賣家距離
+##### 買賣家距離
+* 按生意排名前300
 ```{r}
 scc <- BAA %>%
   group_by(s_lat,s_lng,c_lat,c_lng) %>%
@@ -472,5 +487,6 @@ summary(day_p)
 <span style="font-size:24px">`r "\U1F64A"` 建議：</span><br>
 1. 透過訂單聚集地的幾個州設置物流中心，用來解決運送效率低落的問題。<br>
 2. 透過新增集運的機制給消費者，用來解決運費過高的問題。<br>
+3. 解決一次性消費過高這個根本問題，進而增加顧客對olist電商平台的忠誠度。<br>
 </p class="wwl">
 <br><br>
