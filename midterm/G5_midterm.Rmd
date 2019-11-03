@@ -1,6 +1,6 @@
 ---
 title: Group 5 期中專案競賽
-author: 第 5 組 
+author: 第五組 詹孟凌 陳聖勳 歐陽昱弘 王逸琦 陳昭穎 邱聖凱
 date: "`r Sys.time()`"
 output: 
   html_document:
