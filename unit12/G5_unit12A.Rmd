@@ -189,6 +189,7 @@ data.frame(y=factor(TS$PoorCare), pred4=pred4) %>%
   ggtitle("Distribution of Predicted Probability (DPP,Test)") +
   xlab("predicted probability")
 ```
+
 > 【B】 分別畫出`Training`和`Testing`的`ROC`
 
 ```{r}
