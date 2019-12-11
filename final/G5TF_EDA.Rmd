@@ -237,13 +237,22 @@ mosaic(~area+age, data=A, shade=T)
  4)銷售量或營收最大的品類(品項)獲利也是最大的嗎
 
 ```{r}
-# 品項 100102
-table(A$cat, useNA='ifany') %>% 
-  sort %>% 
-  tail(10) %>% 
-  barplot(main="Cat Groups",las=2)
+# 品項 100205
+tapply(Z$qty, Z$cat, sum) %>% sort %>% tail(10) %>% 
+  barplot(main="cat qty", las=2)
 ```
 
+```{r}
+C = Z %>% group_by(cat) %>% summarise(
+  noProd = n_distinct(prod),
+  totalQty = sum(qty), #總數量
+  totalRev = sum(price), #總收益
+  totalGross = totalRev - sum(cost), #總利潤
+  grossReturn = totalGross/totalRev, #報酬率
+  avgPrice = totalRev/totalQty #平均價格
+  )
+C
+```
 
 
 
