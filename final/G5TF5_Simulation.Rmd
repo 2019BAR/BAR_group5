@@ -59,7 +59,7 @@ m=0.1; b=50; a=100; X = seq(10,120,1)
 sapply(X, function(x) {
   dp = DP(x,m,b,a)
   dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
-  eR = dp*B$Rev - x*(B$Buy+dp)  ###改成每次結帳都做折扣的寫法，x變成x*(B$Buy+dp)
+  eR = dp*B$Rev - x*(B$Buy+dp)  ###改成折價卷的寫法，x變成x*(B$Buy+dp)
   c(x=x, eReturn=sum(eR), N=sum(eR > 0), eReturn2=sum(eR[eR > 0]))
   }) %>% t %>% data.frame %>% 
   gather('key','value',-x) %>% 
@@ -83,7 +83,8 @@ do.call(rbind, lapply(1:4, function(i) data.frame(
   geom_line(size=1.5,alpha=0.5) + theme_bw() +
   ggtitle("Prob. Function: f(x|m,b,a)")
 ```
-從跑出來的圖可知，因為年輕族群只要給他們相對較小面額的折價券，就可以吸引他們來店消費，而且回購率的提升效果也比較大，所以I1族群(a24,a29)的S曲線上升速度較快，S曲線最高點相較其他族群也最高。隨著顧客年齡層提高，所需發的折價券面額也會越來越高，才能吸引他們來店消費，且回購率的提升效果將隨著年齡層提高而遞減，所以S曲線上升速度:I1 > I2 > I3 > I4；S曲線最高點:I1 > I2 > I3 > I4。
+
+> 從跑出來的圖可知，因為年輕族群只要給他們相對較小面額的折價券，就可以吸引他們來店消費，而且回購率的提升效果也比較大，所以I1族群(a24,a29)的S曲線上升速度較快，S曲線最高點相較其他族群也最高。隨著顧客年齡層提高，所需發的折價券面額也會越來越高，才能吸引他們來店消費，且回購率的提升效果將隨著年齡層提高而遞減，所以S曲線上升速度:I1 > I2 > I3 > I4；S曲線最高點:I1 > I2 > I3 > I4。
 
 ##### 市場模擬：不同的參數組合的比較
 ```{r fig.height=6, fig.width=6}
@@ -92,7 +93,7 @@ df = do.call(rbind, lapply(1:4, function(i) {
   sapply(X, function(x) {
     dp = DP(x,mm[i],bb[i],aa[i])
     dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
-    eR = dp*B$Rev - x*(B$Buy+dp)###改成每次結帳都做折扣的寫法，x變成x*(B$Buy+dp)
+    eR = dp*B$Rev - x*(B$Buy+dp)###改成折價卷的寫法，x變成x*(B$Buy+dp)
     c(i=i, x=x, eR.ALL=sum(eR), N=sum(eR>0), eR.SEL=sum(eR[eR > 0]) )
     }) %>% t %>% data.frame
   })) 
@@ -110,6 +111,7 @@ df %>% gather('key','value',-i,-x) %>%
 **最佳策略(不能選擇行銷對象)**
 ```{r}
 group_by(df, i) %>% top_n(1,eR.ALL)
+
 ```
 
 **最佳策略(可以選擇行銷對象)**
@@ -134,16 +136,20 @@ table(B$age) %>% barplot
 &emsp; &emsp; ■ `I4 : a54, a59, a64, a69`<br>
 &emsp; 如果你不能在這4個年齡族群之中選擇行銷對象，你應該如何：<br>
 &emsp; &emsp; ■ 設定折價券的面額(`x`)？  <br>
-&emsp; &emsp; § 折價券面額應設定為$62 <br>
+&emsp; &emsp; § 折價券面額應設定為
+I1 為 `$62` 、I2為 `$79` 、I3為 `$112` 、I4為 `$10` <br>
 &emsp; &emsp; ■ 估計預期報償(`eR.ALL`)？<br>
-&emsp; &emsp; § 估計預期報償為$3,601,583 <br>
+&emsp; &emsp; § 估計預期報償
+I1 為 `$3,601,583` 、I2為 `$2,373,085` 、I3為 `$861,283` 、I4為 `$-365669` <br>
 &emsp; 如果你可以在這4個年齡族群之中選擇行銷對象，你應該如何：<br>
 &emsp; &emsp; ■ 選擇行銷對象(`N`)？<br>
 &emsp; &emsp; § 應選擇I1(a24,a29)族群為行銷對象，N=26905 <br>
 &emsp; &emsp; ■ 設定折價券的面額(`x`)？<br>
-&emsp; &emsp; § 折價券面額應設定為$62 <br>
+&emsp; &emsp; § 折價券面額應設定為
+I1 為 `$62` 、I2為 `$80` 、I3為 `$118` 、I4為 `$144` <br>
 &emsp; &emsp; ■ 估計預期報償(`eR.SEL`)？<br>
-&emsp; &emsp; § 估計預期報償為$3,642,814 <br>
+&emsp; &emsp; § 估計預期報償為
+I1 為 `$3,642,814` 、I2為 `$2,452,381` 、I3為 `$113,9301` 、I4為 `$348,927` <br>
 </p class="qiz"><br>
 
 
