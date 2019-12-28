@@ -265,7 +265,7 @@ C
     
 ```{r}
 set.seed(111)
-A0$grp = kmeans(scale(A0[,c(2,4,5)]),10)$cluster
+A0$grp = kmeans(scale(A0[,c(2,4,5)]),6)$cluster
 table(A0$grp)  # 族群大小
 ```
 
@@ -281,7 +281,7 @@ group_by(A0, grp) %>% summarise(
   geom_point(aes(size=revenue, col=recent),alpha=0.5) +
   scale_size(range=c(4,30)) +
   scale_color_gradient(low="green",high="red") +
-  scale_x_log10() + scale_y_log10(limits=c(30,3000)) + 
+  scale_x_log10() + scale_y_log10(limits=c(300,3000)) + 
   geom_text(aes(label = size ),size=3) +
   theme_bw() + guides(size=F) +
   labs(title="Customer Segements",
