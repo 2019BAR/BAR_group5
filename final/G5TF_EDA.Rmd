@@ -93,7 +93,8 @@ X = Z %>% group_by(tid) %>% summarise(
   pieces = sum(qty),         # 產品(總)件數
   total = sum(price),        # 交易(總)金額
   gross = sum(price - cost),  # 毛利
-  cat= min(cat)
+  cat= min(cat),
+  cost = sum(cost)
 ) %>% data.frame
 nrow(X) # 119422 
 ```
@@ -138,6 +139,8 @@ A = X %>% mutate(
     age = min(age),     # age group
     area = min(area),   # area code
     cat = min(cat),     # cat group
+    cqty = sum(pieces),  # 每位顧客購買的產品數量
+    ccost = sum(cost)
   ) %>% data.frame      
 nrow(A) # 32241
 ```
@@ -268,27 +271,49 @@ set.seed(111)
 A0$grp = kmeans(scale(A0[,c(2,4,5)]),6)$cluster
 table(A0$grp)  # 族群大小
 ```
+```{r}
+group_by(A0, grp) %>% summarise(
+  recent=mean(r), 
+  freq=mean(f), 
+  money=mean(m), 
+  mcqty = mean(cqty),
+  mraw = mean(raw),
+  mccost = mean(ccost),
+  size=n() ) %>% 
+  mutate( revenue = size*money/1000, avgp = money/mcqty, gross = mraw*size/1000, avgc = size*mccost/1000)  %>% 
+  filter(size > 1)
+
+
+```
 
 ```{r}
 group_by(A0, grp) %>% summarise(
   recent=mean(r), 
   freq=mean(f), 
   money=mean(m), 
+  mcqty = mean(cqty),
+  mraw = mean(raw),
+  mccost = mean(ccost),
   size=n() ) %>% 
-  mutate( revenue = size*money/1000 )  %>% 
+  mutate( revenue = size*money/1000, avgp = size*money/mcqty, gross = mraw*size/1000, avgc = size*mccost/1000)  %>% 
   filter(size > 1) %>% 
   ggplot(aes(x=freq, y=money)) +
-  geom_point(aes(size=revenue, col=recent),alpha=0.5) +
+  geom_point(aes(size=gross, col=recent),alpha=0.5) +
   scale_size(range=c(4,30)) +
   scale_color_gradient(low="green",high="red") +
-  scale_x_log10() + scale_y_log10(limits=c(300,3000)) + 
+  scale_x_log10() + scale_y_log10(limits=c(100,3000)) + 
   geom_text(aes(label = size ),size=3) +
   theme_bw() + guides(size=F) +
   labs(title="Customer Segements",
-       subtitle="(bubble_size:revenue_contribution; text:group_size)",
+       subtitle="(bubble_size:gross_contribution; text:group_size)",
        color="Recency") +
   xlab("Frequency (log)") + ylab("Average Transaction Amount (log)")
 ```
+
+```{r}
+summary(A0)
+```
+
 
 ```{r}
 K = as.integer(sum(A0$s[A0$f>1]) / sum(A0$f[A0$f>1])); K
