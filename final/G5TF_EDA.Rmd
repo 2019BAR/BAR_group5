@@ -270,7 +270,21 @@ C
 set.seed(111)
 A0$grp = kmeans(scale(A0[,c(2,4,5)]),6)$cluster
 table(A0$grp)  # 族群大小
+save(A0,file="data/group.rdata")
 ```
+
+```{r}
+load("data/group.rdata")
+group_by(A0, grp) %>% summarise(
+  total.rev = sum(rev),
+  total.raw = sum(raw),
+  group.margin = sum(raw)/sum(rev)
+)
+```
+
+
+
+
 ```{r}
 group_by(A0, grp) %>% summarise(
   recent=mean(r), 
