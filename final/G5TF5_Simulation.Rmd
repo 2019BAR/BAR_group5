@@ -10,7 +10,6 @@ output:
 ---
 
 
-
 ##### Loading & Preparing Data
 ```{r echo=T, message=F, cache=F, warning=F}
 options(scipen=10)
@@ -19,13 +18,6 @@ rm(list=ls(all=TRUE))
 load("data/tf4.rdata")
 ```
 
-```{r}
-load('data/tf0.rdata')
-# 毛利率
-# sum(price - cost) / sum (price)
-Z0 %>% group_by(age) %>% 
-  summarise (eG = sum(price - cost)/ sum(price))
-```
 ##### 購買機率與預期營收的分布
 ```{r fig.height=2.4, fig.width=7.2}
 par(mfrow=c(1,2), cex=0.8)
@@ -66,8 +58,8 @@ $$\hat{R}(x) = \left\{\begin{matrix}
 m=0.1; b=50; a=100; X = seq(10,120,1)
 sapply(X, function(x) {
   dp = DP(x,m,b,a)
-  # dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
-  eR = dp* B$Buy *B$Rev - x  ###改成折價卷的寫法，x變成x*(B$Buy+dp)
+  dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
+  eR = dp*B$Rev - x*(B$Buy+dp)  ###改成折價卷的寫法，x變成x*(B$Buy+dp)
   c(x=x, eReturn=sum(eR), N=sum(eR > 0), eReturn2=sum(eR[eR > 0]))
   }) %>% t %>% data.frame %>% 
   gather('key','value',-x) %>% 
