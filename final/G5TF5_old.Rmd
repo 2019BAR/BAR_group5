@@ -1,5 +1,5 @@
 ---
-title: TF5_市場模擬 
+title: TF5_市場模擬 (老顧客)
 author: 第5組
 date: "`r Sys.time()`"
 output:
@@ -9,13 +9,20 @@ output:
     css: ../style.css
 ---
 
-
+### 前置處理
 ##### Loading & Preparing Data
 ```{r echo=T, message=F, cache=F, warning=F}
 options(scipen=10)
 pacman::p_load(latex2exp,Matrix,dplyr,tidyr,ggplot2,caTools)
 rm(list=ls(all=TRUE))
+load("data/tf0.rdata")
 load("data/tf4.rdata")
+```
+##### 分群資料
+```{r}
+set.seed(111)
+A0$grp = kmeans(scale(A0[,c(2,4,5)]),6)$cluster
+table(A0$grp)
 ```
 
 ##### 購買機率與預期營收的分布
@@ -24,6 +31,39 @@ par(mfrow=c(1,2), cex=0.8)
 hist(B$Buy)
 hist(log(B$Rev,10))
 ```
+
+```{r}
+B = left_join(B, A0[,c(1,13)]) # 將B與A做join，為了grp轉到B
+table(B$grp)
+B = B %>% filter(grp != 2) # 排除分群2
+B$grp[which(B$grp==6)] <- 2 # 將分群6置換至2
+table(B$grp, useNA = "ifany")
+```
+```{r}
+G1 = subset(B, grp=="1") # 流動顧客
+G2 = subset(B, grp=="2") # 主力顧客
+G3 = subset(B, grp=="3") # 老顧客
+G4 = subset(B, grp=="4") # 優質顧客
+G5 = subset(B, grp=="5") # 勤儉一族
+```
+
+```{r}
+B %>% 
+  group_by(grp) %>% 
+  summarise(
+    size = n(),
+    AvgBuy = mean(Buy),
+    AvgRev = mean(Rev),
+    TotalRev = sum(Rev),
+)
+```
+
+##### 行銷方案
+1. 方案目的：提升老顧客購買頻率
+2. 目標客群：會員資格需滿90天以上(盡量鎖定是老顧客的會員)才符合領取資格
+3. 方案內容：在活動日的消費，依照消費額度，給予下次消費的折扣券且折扣券必須在下次活動日之前使用完畢
+4. 方案時間：每季舉辦一次活動日(因為老顧客是超過約89天都沒來消費)
+
 
 ##### 帶有「參數」的成本效益函數
 
@@ -37,7 +77,6 @@ par(mar=c(4,4,2,1),mfrow=c(1,2),cex=0.7)
 curve(DP(x,m=0.20,b=15,a=20), 0, 30, lwd=2, ylim=c(0, 0.25),
       main="F( x | m=0.2, b=15, a=20 )", ylab="delta P")
 abline(h=seq(0,0.2,0.05),v=seq(0,30,5),col='lightgrey',lty=2)
-
 m=0.1; b=150; a=200; x=200
 dp = DP(x,m,b,a)
 dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
@@ -55,11 +94,11 @@ $$\hat{R}(x) = \left\{\begin{matrix}
 
 ##### 市場模擬：單一參數組合
 ```{r}
-m=0.1; b=50; a=100; X = seq(10,120,1)
+m=0.05; b=50; a=100; X = seq(10,120,1)
 sapply(X, function(x) {
   dp = DP(x,m,b,a)
   dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
-  eR = dp*B$Rev - x*(B$Buy+dp)  ###改成折價卷的寫法，x變成x*(B$Buy+dp)
+  eR = dp*B$Rev - x  # 改成回購的機率
   c(x=x, eReturn=sum(eR), N=sum(eR > 0), eReturn2=sum(eR[eR > 0]))
   }) %>% t %>% data.frame %>% 
   gather('key','value',-x) %>% 
@@ -71,12 +110,13 @@ sapply(X, function(x) {
 
 ##### 不同的參數組合
 ```{r fig.height=3, fig.width=7}
-mm=c(0.2,0.16,0.12,0.08)  ###I1:a24,a29
-bb=c(40,50,80,100)        ###I2:a34,a39
-aa=c(60,100,150,200)      ###I3:a44,a49
-X = seq(0,250,5)          ###I4:a54,a59,a64,a69
-do.call(rbind, lapply(1:4, function(i) data.frame(
-  Inst=paste0('Inst',i), Para=X, 
+mm=c(0.1, 0.16, 0.24, 0.08, 0.04, 0.02)   ###I1:流動顧客
+bb=c(40, 50, 170, 100, 110, 140 )         ###I2:老顧客
+aa=c(60,100,150,200,250,300)              ###I3:優質顧客
+X = seq(0,250,5)                          ###I4:勤儉一族
+                                          ###I5:主力顧客
+do.call(rbind, lapply(1:5, function(i) data.frame(
+  Inst=paste0('grp',i), Para=X, 
   Gain=DP(X,mm[i],bb[i],aa[i])
   ))) %>% data.frame %>% 
   ggplot(aes(x=Para, y=Gain, col=Inst)) +
@@ -84,16 +124,33 @@ do.call(rbind, lapply(1:4, function(i) data.frame(
   ggtitle("Prob. Function: f(x|m,b,a)")
 ```
 
-> 從跑出來的圖可知，因為年輕族群只要給他們相對較小面額的折價券，就可以吸引他們來店消費，而且回購率的提升效果也比較大，所以I1族群(a24,a29)的S曲線上升速度較快，S曲線最高點相較其他族群也最高。隨著顧客年齡層提高，所需發的折價券面額也會越來越高，才能吸引他們來店消費，且回購率的提升效果將隨著年齡層提高而遞減，所以S曲線上升速度:I1 > I2 > I3 > I4；S曲線最高點:I1 > I2 > I3 > I4。
-
+##### 模擬策略
+```{r}
+m=0.06; a=25; b=20
+do.call(rbind, lapply(seq(5,50,0.5), function(x){
+  dp = DP(x,m,b,a)
+  B %>% mutate(
+    dp = ifelse(Buy+dp>1, 1-Buy, dp),
+    eR = dp*Rev - x
+  ) %>%
+    group_by(grp) %>% summarise(
+      Cost = x,
+      Group.Sz = n(),
+      eR.ALL = sum(eR>0),
+      eR.SEL = sum(eR[eR>0]),
+    ) } ) ) %>% 
+  ggplot(aes(x=Cost, y=eR.SEL, col=factor(grp))) +
+  geom_line(size=1.2) +
+  ggtitle("行銷工具 ")
+```
 ##### 市場模擬：不同的參數組合的比較
 ```{r fig.height=6, fig.width=6}
-X = seq(10, 250, 1) 
-df = do.call(rbind, lapply(1:4, function(i) {
+X = seq(10, 250, 5) 
+df = do.call(rbind, lapply(1:5, function(i) {
   sapply(X, function(x) {
     dp = DP(x,mm[i],bb[i],aa[i])
-    dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
-    eR = dp*B$Rev - x*(B$Buy+dp)###改成折價卷的寫法，x變成x*(B$Buy+dp)
+    dp = ifelse(B$Buy[B$grp==i]+dp>1, 1-B$Buy[B$grp==i], dp)
+    eR = dp*B$Rev[B$grp==i] - x # 改成回購的機率
     c(i=i, x=x, eR.ALL=sum(eR), N=sum(eR>0), eR.SEL=sum(eR[eR > 0]) )
     }) %>% t %>% data.frame
   })) 
@@ -123,34 +180,10 @@ group_by(df,i) %>% top_n(1,eR.SEL)
 ##### 討論問題
 ```{r fig.height=1.5, fig.width=5}
 par(cex=0.7, mar=c(2,2,1,2))
-table(B$age) %>% barplot
+table(B$grp) %>% barplot
 ```
 <br>
 
-<p class="qiz">
-<span style="font-size:24px">`r "\U1F5FF"` 討論問題：</span><br>
-&emsp; 如果上述4組工具參數分別是某折價券對4個不同年齡族群的效果：<br>
-&emsp; &emsp; ■ `I1 : a24, a29`<br>
-&emsp; &emsp; ■ `I2 : a34, a39`<br>
-&emsp; &emsp; ■ `I3 : a44, a49`<br>
-&emsp; &emsp; ■ `I4 : a54, a59, a64, a69`<br>
-&emsp; 如果你不能在這4個年齡族群之中選擇行銷對象，你應該如何：<br>
-&emsp; &emsp; ■ 設定折價券的面額(`x`)？  <br>
-&emsp; &emsp; § 折價券面額應設定為
-I1 為 `$62` 、I2為 `$79` 、I3為 `$112` 、I4為 `$10` <br>
-&emsp; &emsp; ■ 估計預期報償(`eR.ALL`)？<br>
-&emsp; &emsp; § 估計預期報償
-I1 為 `$3,601,583` 、I2為 `$2,373,085` 、I3為 `$861,283` 、I4為 `$-365669` <br>
-&emsp; 如果你可以在這4個年齡族群之中選擇行銷對象，你應該如何：<br>
-&emsp; &emsp; ■ 選擇行銷對象(`N`)？<br>
-&emsp; &emsp; § 應選擇I1(a24,a29)族群為行銷對象，N=26905 <br>
-&emsp; &emsp; ■ 設定折價券的面額(`x`)？<br>
-&emsp; &emsp; § 折價券面額應設定為
-I1 為 `$62` 、I2為 `$80` 、I3為 `$118` 、I4為 `$144` <br>
-&emsp; &emsp; ■ 估計預期報償(`eR.SEL`)？<br>
-&emsp; &emsp; § 估計預期報償為
-I1 為 `$3,642,814` 、I2為 `$2,452,381` 、I3為 `$113,9301` 、I4為 `$348,927` <br>
-</p class="qiz"><br>
 
 
 <br><br><hr>
