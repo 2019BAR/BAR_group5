@@ -150,6 +150,17 @@ df %>% gather('key','value',-i,-x) %>%
 ```
 
 
+```{r}
+profitRate=0.146
+Bu=G5$Buy
+Re=G5$Rev
+m=0.05; a=20; b=10
+cost = 15
+increasingRate = DP(cost,m,a,b)
+returnTotal = sum(P0*R0*increasingRate*profitRate-cost)
+costTotal = length(P0)*cost
+data.frame(cost=cost, increasingRate=increasingRate, returnTotal=returnTotal, costTotal=costTotal, ROI=returnTotal/costTotal)
+```
 
 **最佳策略(不能選擇行銷對象)**
 ```{r}

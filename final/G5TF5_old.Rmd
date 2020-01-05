@@ -142,26 +142,26 @@ do.call(rbind, lapply(1:5, function(i) data.frame(
 
 ##### 行銷工具
 ```{r}
-m=0.06; a=25; b=20
-do.call(rbind, lapply(seq(5,50,0.5), function(x){
-  dp = DP(x,m,b,a)
-  B %>% mutate(
-    dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp),
-    dm = DP(x,mm2[i],bb2[i],aa2[i]),
-    # eR = dp*B$Rev - x*(B$Buy+dp)
-    eR = ((B$Buy+dp) * B$Rev*(1+dm) - B$Rev*B$Buy) * gm - x,
-    dp = ifelse(Buy+dp>1, 1-Buy, dp),
-    eR = dp*Rev - x
-  ) %>%
-    group_by(grp) %>% summarise(
-      Cost = x,
-      Group.Sz = n(),
-      eR.ALL = sum(eR>0),
-      eR.SEL = sum(eR[eR>0]),
-    ) } ) ) %>% 
-  ggplot(aes(x=Cost, y=eR.SEL, col=factor(grp))) +
-  geom_line(size=1.2) +
-  ggtitle("行銷工具 ")
+# m=0.06; a=25; b=20
+# do.call(rbind, lapply(seq(5,50,0.5), function(x){
+#   dp = DP(x,m,b,a)
+#   B %>% mutate(
+#     dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp),
+#     dm = DP(x,mm2[i],bb2[i],aa2[i]),
+#     # eR = dp*B$Rev - x*(B$Buy+dp)
+#     eR = ((B$Buy+dp) * B$Rev*(1+dm) - B$Rev*B$Buy) * gm - x,
+#     dp = ifelse(Buy+dp>1, 1-Buy, dp),
+#     eR = dp*Rev - x
+#   ) %>%
+#     group_by(grp) %>% summarise(
+#       Cost = x,
+#       Group.Sz = n(),
+#       eR.ALL = sum(eR>0),
+#       eR.SEL = sum(eR[eR>0]),
+#     ) } ) ) %>% 
+#   ggplot(aes(x=Cost, y=eR.SEL, col=factor(grp))) +
+#   geom_line(size=1.2) +
+#   ggtitle("行銷工具 ")
 ```
 
 ##### 行銷工具2
@@ -187,12 +187,21 @@ do.call(rbind, lapply(seq(5,50,0.5), function(x){
 ```
 ##### 市場模擬：不同的參數組合的比較
 ```{r fig.height=6, fig.width=6}
+mm=0.1  
+bb=90        
+aa=100     
+mm2=0.3  
+bb2=90        
+aa2=100
 X = seq(10, 250, 5) 
 df = do.call(rbind, lapply(1:5, function(i) {
   sapply(X, function(x) {
-    dp = DP(x,mm[i],bb[i],aa[i])
+    dp = DP(x,mm,bb,aa)
     dp = ifelse(B$Buy[B$grp==i]+dp>1, 1-B$Buy[B$grp==i], dp)
-    eR = dp*B$Rev[B$grp==i] - x # 改成回購的機率
+    dm = DP(x,mm2,bb2,aa2)
+    # eR = dp*B$Rev - x*(B$Buy+dp)
+    eR = ((B$Buy[B$grp==i]+dp) * B$Rev[B$grp==i]*(1+dm) - B$Rev[B$grp==i]*B$Buy[B$grp==i]) * gm - x
+
     c(i=i, x=x, eR.ALL=sum(eR), N=sum(eR>0), eR.SEL=sum(eR[eR > 0]) )
     }) %>% t %>% data.frame
   })) 
@@ -207,6 +216,17 @@ df %>% gather('key','value',-i,-x) %>%
     facet_wrap(~key,ncol=1,scales='free_y') + theme_bw()
 ```
 
+```{r}
+profitRate=0.146
+Bu=G5$Buy
+Re=G5$Rev
+m=0.05; a=20; b=10
+cost = 15
+increasingRate = DP(cost,m,a,b)
+returnTotal = sum(Bu*Re*increasingRate*profitRate-cost)
+costTotal = length(Bu)*cost
+data.frame(cost=cost, increasingRate=increasingRate, returnTotal=returnTotal, costTotal=costTotal, ROI=returnTotal/costTotal)
+```
 **最佳策略(不能選擇行銷對象)**
 ```{r}
 group_by(df, i) %>% top_n(1,eR.ALL)
