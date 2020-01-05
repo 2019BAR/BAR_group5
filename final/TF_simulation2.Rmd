@@ -24,7 +24,7 @@ B$grp[which(B$grp==6)] <- 2 # 將分群6置換至2
 DP = function(x,m0,b0,a0) {m0*plogis((10/a0)*(x-b0))}
 ```
 
-行銷工具1 {data-orientation=columns data-icon="fa-chess"}
+行銷工具2 {data-orientation=columns data-icon="fa-chess"}
 =====================================
 
 Input {.sidebar  data-width=280}
@@ -69,6 +69,11 @@ Column  {data-width=30%}
 ###   {data-height=65%}
 
 ```{r}
+HTML('<p style="color:#ef42f5";><b>G1 流動顧客 &emsp;
+G2 主力顧客 &emsp;
+G3 老顧客 &emsp;
+G4 優質顧客 &emsp;
+G5 勤儉一族</b></p>')
 renderPlot({####################################
   gm = 0.15 * 3
   m = X()$m; b = X()$b ;a =X()$a; m2 = X()$m2; b2 = X()$b2 ;a2 =X()$a2

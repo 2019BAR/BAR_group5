@@ -86,16 +86,16 @@ eR = dp*B$Rev - x
 hist(eR)
 ```
 ```{r}
-manipulate({##############################
-  # 用curve指令函數設定m, b, a
-  curve(DP(x,m=0.20,b=15,a=20), 0, 30, lwd=2, ylim=c(0, 0.25),
-        main="F( x | m=0.2, b=15, a=20 )", ylab="delta P")
-  abline(h=seq(0,0.2,0.05),v=seq(0,30,5),col='lightgrey',lty=2)
-},########################################
-m = slider(0.05, 0.35,  0.20, step=0.01),
-a = slider(  10,   40,    25, step=1),
-b = slider(   4,   40,    20, step=1)
-) 
+# manipulate({##############################
+#   # 用curve指令函數設定m, b, a
+#   curve(DP(x,m=0.20,b=15,a=20), 0, 30, lwd=2, ylim=c(0, 0.25),
+#         main="F( x | m=0.2, b=15, a=20 )", ylab="delta P")
+#   abline(h=seq(0,0.2,0.05),v=seq(0,30,5),col='lightgrey',lty=2)
+# },########################################
+# m = slider(0.05, 0.35,  0.20, step=0.01),
+# a = slider(  10,   40,    25, step=1),
+# b = slider(   4,   40,    20, step=1)
+# ) 
 ```
 
 
@@ -109,11 +109,12 @@ $$\hat{R}(x) = \left\{\begin{matrix}
 
 ##### 市場模擬：單一參數組合
 ```{r}
+gm = 0.15 * 3
 m=0.05; b=50; a=100; X = seq(10,120,1)
 sapply(X, function(x) {
   dp = DP(x,m,b,a)
-  dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
-  eR = dp*B$Rev - x  # 改成回購的機率
+  #dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
+  eR = gm*dp*B$Buy*B$Rev - x  # 改成回購的機率
   c(x=x, eReturn=sum(eR), N=sum(eR > 0), eReturn2=sum(eR[eR > 0]))
   }) %>% t %>% data.frame %>% 
   gather('key','value',-x) %>% 
@@ -139,6 +140,7 @@ do.call(rbind, lapply(1:5, function(i) data.frame(
   ggtitle("Prob. Function: f(x|m,b,a)")
 ```
 
+##### 行銷工具
 ```{r}
 m=0.06; a=25; b=20
 do.call(rbind, lapply(seq(5,50,0.5), function(x){
@@ -162,7 +164,7 @@ do.call(rbind, lapply(seq(5,50,0.5), function(x){
   ggtitle("行銷工具 ")
 ```
 
-##### 模擬策略
+##### 行銷工具2
 ```{r}
 m=0.06; a=25; b=20
 do.call(rbind, lapply(seq(5,50,0.5), function(x){
@@ -177,9 +179,11 @@ do.call(rbind, lapply(seq(5,50,0.5), function(x){
       eR.ALL = sum(eR>0),
       eR.SEL = sum(eR[eR>0]),
     ) } ) ) %>% 
-  ggplot(aes(x=Cost, y=eR.SEL, col=factor(grp))) +
-  geom_line(size=1.2) +
-  ggtitle("行銷工具 ")
+  gather("key","value",4:5) %>% 
+    ggplot(aes(x=Cost, y=value, col=factor(grp))) +
+    geom_line(size=1.2) +
+    facet_wrap(~key, ncol=1, scales="free_y") +
+    ggtitle("行銷工具2")
 ```
 ##### 市場模擬：不同的參數組合的比較
 ```{r fig.height=6, fig.width=6}

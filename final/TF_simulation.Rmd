@@ -63,6 +63,11 @@ Column  {data-width=30%}
 ###   {data-height=65%}
 
 ```{r}
+HTML('<p style="color:#ef42f5";><b>G1 流動顧客 &emsp;
+G2 主力顧客 &emsp;
+G3 老顧客 &emsp;
+G4 優質顧客 &emsp;
+G5 勤儉一族</b></p>')
 renderPlot({####################################
   gm = 0.15 * 3
   m = X()$m; b = X()$b ;a =X()$a
@@ -83,65 +88,6 @@ renderPlot({####################################
     geom_line(size=1.2) +
     facet_wrap(~key, ncol=1, scales="free_y") +
     ggtitle("行銷工具1")
-}) 
-
-```
-
-行銷工具2 {data-orientation=columns data-icon="fa-chess"}
-=====================================
-
-Input {.sidebar  data-width=280}
--------------------------------------
-
-```{r}
-chooseSliderSkin("Modern")
-
-hr()
-HTML('<p style="color:#ef42f5";><b>行銷工具二</b></p>')
-
-sliderInput("m", "m", 0.05, 0.4,  0.3, 0.01)
-sliderInput("b", "b",  10,   50,    50, 1)
-sliderInput("a", "a",   10,   100,   100, 5)
-
-br();
-
-
-Y=reactive({
-  m=input$m
-  b=input$b
-  a=input$a
-  list(m=m,b=b,a=a)
-})
-```
-
-<hr><p>
-<img src="shiny/cm_nsysu.png" alt="CM.NSYSU" height="92" align="left"> <br>
-[中山管理學院](https://bap.cm.nsysu.edu.tw/) <br>
-<p style="font-size:11px">第五組</p> <br>
-</p>
- 
-Column  {data-width=30%}
--------------------------------------
-###   {data-height=65%}
-
-```{r}
-renderPlot({####################################
-  m = Y()$m; b = Y()$b ;a =Y()$a
-  do.call(rbind, lapply(seq(5,50,0.5), function(x){
-    dp = DP(x,m,b,a)
-    B %>% mutate(
-      dp = ifelse(Buy+dp>1, 1-Buy, dp),
-      eR = dp*Rev - x # 行銷工具
-    ) %>%
-      group_by(grp) %>% summarise(
-        Cost = x,
-        Group.Sz = n(),
-        eR.ALL = sum(eR>0),
-        eR.SEL = sum(eR[eR>0]),
-      ) } ) ) %>% 
-    ggplot(aes(x=Cost, y=eR.SEL, col=factor(grp))) +
-    geom_line(size=1.2) +
-    ggtitle("行銷工具2")
 }) 
 
 ```
