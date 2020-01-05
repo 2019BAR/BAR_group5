@@ -20,9 +20,11 @@ load("data/tf4.rdata")
 ```
 ##### 分群資料
 ```{r}
-set.seed(111)
-A0$grp = kmeans(scale(A0[,c(2,4,5)]),6)$cluster
-table(A0$grp)
+# set.seed(111)
+# A0$grp = kmeans(scale(A0[,c(2,4,5)]),6)$cluster
+# table(A0$grp)
+# save(A0,file="data/group.rdata")
+load("data/group.rdata")
 ```
 
 ##### 購買機率與預期營收的分布
