@@ -139,6 +139,29 @@ do.call(rbind, lapply(1:5, function(i) data.frame(
   ggtitle("Prob. Function: f(x|m,b,a)")
 ```
 
+```{r}
+m=0.06; a=25; b=20
+do.call(rbind, lapply(seq(5,50,0.5), function(x){
+  dp = DP(x,m,b,a)
+  B %>% mutate(
+    dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp),
+    dm = DP(x,mm2[i],bb2[i],aa2[i]),
+    # eR = dp*B$Rev - x*(B$Buy+dp)
+    eR = ((B$Buy+dp) * B$Rev*(1+dm) - B$Rev*B$Buy) * gm - x,
+    dp = ifelse(Buy+dp>1, 1-Buy, dp),
+    eR = dp*Rev - x
+  ) %>%
+    group_by(grp) %>% summarise(
+      Cost = x,
+      Group.Sz = n(),
+      eR.ALL = sum(eR>0),
+      eR.SEL = sum(eR[eR>0]),
+    ) } ) ) %>% 
+  ggplot(aes(x=Cost, y=eR.SEL, col=factor(grp))) +
+  geom_line(size=1.2) +
+  ggtitle("行銷工具 ")
+```
+
 ##### 模擬策略
 ```{r}
 m=0.06; a=25; b=20

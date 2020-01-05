@@ -35,11 +35,14 @@ chooseSliderSkin("Modern")
 
 hr()
 # h4("產品一")
-HTML('<p style="color:#ef42f5";><b>行銷工具一</b></p>')
+HTML('<p style="color:#ef42f5";><b>行銷工具二</b></p>')
 
 sliderInput("m", "m", 0.05, 0.4,  0.3, 0.01)
 sliderInput("b", "b",  10,   50,    50, 1)
 sliderInput("a", "a",   10,   100,   100, 5)
+sliderInput("m2", "m2", 0.05, 0.4,  0.3, 0.01)
+sliderInput("b2", "b2",  10,   50,    50, 1)
+sliderInput("a2", "a2",   10,   100,   100, 5)
 
 br();
 
@@ -48,14 +51,17 @@ X=reactive({
   m=input$m
   b=input$b
   a=input$a
-  list(m=m,b=b,a=a)
+  m2=input$m2
+  b2=input$b2
+  a2=input$a2
+  list(m=m,b=b,a=a,m2=m2,b2=b2,a2=a2)
 })
 ```
 
 <hr><p>
 <img src="shiny/cm_nsysu.png" alt="CM.NSYSU" height="92" align="left"> <br>
 [中山管理學院](https://bap.cm.nsysu.edu.tw/) <br>
-<p style="font-size:11px">卓雍然</p> <br>
+<p style="font-size:11px">Grp5</p> <br>
 </p>
  
 Column  {data-width=30%}
@@ -65,12 +71,14 @@ Column  {data-width=30%}
 ```{r}
 renderPlot({####################################
   gm = 0.15 * 3
-  m = X()$m; b = X()$b ;a =X()$a
+  m = X()$m; b = X()$b ;a =X()$a; m2 = X()$m2; b2 = X()$b2 ;a2 =X()$a2
   do.call(rbind, lapply(seq(5,100,1), function(x){
     dp = DP(x,m,b,a)
+    dm = DP(x,m2,b2,a2)
     B %>% mutate(
-      #dp = ifelse(Buy+dp>1, 1-Buy, dp),
-      eR = gm*dp*Buy*Rev - x # 行銷工具
+      dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp),
+     # eR = dp*B$Rev - x*(B$Buy+dp),
+      eR = ((B$Buy+dp) * B$Rev*(1+dm) - B$Rev*B$Buy) * gm - x # 行銷工具
     ) %>%
       group_by(grp) %>% summarise(
         Cost = x,
@@ -82,65 +90,6 @@ renderPlot({####################################
     ggplot(aes(x=Cost, y=value, col=factor(grp))) +
     geom_line(size=1.2) +
     facet_wrap(~key, ncol=1, scales="free_y") +
-    ggtitle("行銷工具1")
-}) 
-
-```
-
-行銷工具2 {data-orientation=columns data-icon="fa-chess"}
-=====================================
-
-Input {.sidebar  data-width=280}
--------------------------------------
-
-```{r}
-chooseSliderSkin("Modern")
-
-hr()
-HTML('<p style="color:#ef42f5";><b>行銷工具二</b></p>')
-
-sliderInput("m", "m", 0.05, 0.4,  0.3, 0.01)
-sliderInput("b", "b",  10,   50,    50, 1)
-sliderInput("a", "a",   10,   100,   100, 5)
-
-br();
-
-
-Y=reactive({
-  m=input$m
-  b=input$b
-  a=input$a
-  list(m=m,b=b,a=a)
-})
-```
-
-<hr><p>
-<img src="shiny/cm_nsysu.png" alt="CM.NSYSU" height="92" align="left"> <br>
-[中山管理學院](https://bap.cm.nsysu.edu.tw/) <br>
-<p style="font-size:11px">第五組</p> <br>
-</p>
- 
-Column  {data-width=30%}
--------------------------------------
-###   {data-height=65%}
-
-```{r}
-renderPlot({####################################
-  m = Y()$m; b = Y()$b ;a =Y()$a
-  do.call(rbind, lapply(seq(5,50,0.5), function(x){
-    dp = DP(x,m,b,a)
-    B %>% mutate(
-      dp = ifelse(Buy+dp>1, 1-Buy, dp),
-      eR = dp*Rev - x # 行銷工具
-    ) %>%
-      group_by(grp) %>% summarise(
-        Cost = x,
-        Group.Sz = n(),
-        eR.ALL = sum(eR>0),
-        eR.SEL = sum(eR[eR>0]),
-      ) } ) ) %>% 
-    ggplot(aes(x=Cost, y=eR.SEL, col=factor(grp))) +
-    geom_line(size=1.2) +
     ggtitle("行銷工具2")
 }) 
 
