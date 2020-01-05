@@ -37,13 +37,13 @@ hr()
 # h4("產品一")
 HTML('<p style="color:#ef42f5";><b>行銷工具二</b></p>')
 
-sliderInput("m", "m", 0.05, 0.4,  0.3, 0.01)
-sliderInput("b", "b",  10,   50,    50, 1)
-sliderInput("a", "a",   10,   100,   100, 5)
-sliderInput("m2", "m2", 0.05, 0.4,  0.3, 0.01)
-sliderInput("b2", "b2",  10,   50,    50, 1)
-sliderInput("a2", "a2",   10,   100,   100, 5)
 
+sliderInput("m", "m", 0.05, 0.4,  0.1, 0.01)
+sliderInput("b", "b",  10,   150,    90, 5)
+sliderInput("a", "a",   10,   200,   100, 5)
+sliderInput("m2", "m2", 0.05, 0.4,  0.3, 0.01)
+sliderInput("b2", "b2",  10,   150,    90, 5)
+sliderInput("a2", "a2",   10,   200,   100, 5)
 br();
 
 
@@ -67,6 +67,12 @@ X=reactive({
 Column  {data-width=30%}
 -------------------------------------
 ###   {data-height=65%}
+$$
+E(\pi) = g * p * m \\
+E(\hat{\pi}) = g * (p+\Delta p) * m(1+\Delta m) \\
+E(r) = E(\hat{\pi}) - E(\pi) - x \\ 
+\Delta p(x|m_1,b_1,a_1) \; ;\; \Delta m(x|m_2,b_2,a_2)
+$$
 
 ```{r}
 HTML('<p style="color:#ef42f5";><b>G1 流動顧客 &emsp;
@@ -77,7 +83,7 @@ G5 勤儉一族</b></p>')
 renderPlot({####################################
   gm = 0.15 * 3
   m = X()$m; b = X()$b ;a =X()$a; m2 = X()$m2; b2 = X()$b2 ;a2 =X()$a2
-  do.call(rbind, lapply(seq(5,100,1), function(x){
+  do.call(rbind, lapply(seq(10,200,1), function(x){
     dp = DP(x,m,b,a)
     dm = DP(x,m2,b2,a2)
     B %>% mutate(
@@ -99,3 +105,4 @@ renderPlot({####################################
 }) 
 
 ```
+
