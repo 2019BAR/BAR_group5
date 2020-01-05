@@ -238,7 +238,12 @@ group_by(df, i) %>% top_n(1,eR.ALL)
 group_by(df,i) %>% top_n(1,eR.SEL)
 ```
 
+```{r}
 
+group_by(df,i) %>% summarize(
+  erer=(eR.ALL - x*n) / x* N
+)
+```
 ##### 討論問題
 ```{r fig.height=1.5, fig.width=5}
 par(cex=0.7, mar=c(2,2,1,2))

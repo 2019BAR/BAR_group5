@@ -15,4 +15,4 @@ by: [中山管院: 商務數據分析](https://bap.cm.nsysu.edu.tw/)
 [期中競賽html](https://2019bar.github.io/BAR_group5/midterm/G5_midterm.html)
 
 ---
-[期末競賽]()
+[期末競賽shinyapp](https://nsysu-kidneyweakx.shinyapps.io/tf_simulation)
