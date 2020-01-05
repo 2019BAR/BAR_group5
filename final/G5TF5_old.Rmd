@@ -83,6 +83,19 @@ dp = ifelse(B$Buy+dp>1, 1-B$Buy, dp)
 eR = dp*B$Rev - x
 hist(eR)
 ```
+```{r}
+manipulate({##############################
+  # 用curve指令函數設定m, b, a
+  curve(DP(x,m=0.20,b=15,a=20), 0, 30, lwd=2, ylim=c(0, 0.25),
+        main="F( x | m=0.2, b=15, a=20 )", ylab="delta P")
+  abline(h=seq(0,0.2,0.05),v=seq(0,30,5),col='lightgrey',lty=2)
+},########################################
+m = slider(0.05, 0.35,  0.20, step=0.01),
+a = slider(  10,   40,    25, step=1),
+b = slider(   4,   40,    20, step=1)
+) 
+```
+
 
 $$\Delta P = f(x|m,b,a) = m \cdot Logis(\frac{10(x - b)}{a})$$
 
