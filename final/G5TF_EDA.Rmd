@@ -315,11 +315,11 @@ group_by(A0, grp) %>% summarise(
   geom_point(aes(size=gross, col=recent),alpha=0.5) +
   scale_size(range=c(4,30)) +
   scale_color_gradient(low="green",high="red") +
-  scale_x_log10() + scale_y_log10(limits=c(100,3000)) + 
+  scale_x_log10() + scale_y_log10(limits=c(300,3000)) + 
   geom_text(aes(label = size ),size=3) +
   theme_bw() + guides(size=F) +
   labs(title="Customer Segements",
-       subtitle="(bubble_size:gross_contribution; text:group_size)",
+       subtitle="(bubble_size:Revenue_contribution; text:group_size)",
        color="Recency") +
   xlab("Frequency (log)") + ylab("Average Transaction Amount (log)")
 ```
